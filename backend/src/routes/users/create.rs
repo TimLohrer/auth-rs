@@ -1,7 +1,19 @@
-use rocket::{error, post, serde::{json::Json, Deserialize}};
+use rocket::{
+    error, post,
+    serde::{json::Json, Deserialize},
+};
 use rocket_db_pools::Connection;
 
-use crate::{db::AuthRsDatabase, models::{audit_log::{AuditLog, AuditLogAction, AuditLogEntityType}, http_response::HttpResponse, user::{User, UserMinimal}}};
+use crate::models::user::UserDTO;
+use crate::{
+    db::AuthRsDatabase,
+    models::{
+        audit_log::{AuditLog, AuditLogAction, AuditLogEntityType},
+        http_response::HttpResponse,
+        user::User,
+        user_error::{UserError, UserResult},
+    },
+};
 
 #[derive(Deserialize)]
 #[serde(crate = "rocket::serde")]
@@ -14,36 +26,53 @@ pub struct CreateUserData {
 }
 
 #[allow(unused)]
-#[post("/users", format = "json", data = "<data>")] 
-pub async fn create_user(db: Connection<AuthRsDatabase>, data: Json<CreateUserData>) -> Json<HttpResponse<UserMinimal>> { 
-    let data = data.into_inner();
+#[post("/users", format = "json", data = "<data>")]
+pub async fn create_user(
+    db: Connection<AuthRsDatabase>,
+    data: Json<CreateUserData>,
+) -> Json<HttpResponse<UserDTO>> {
+    let result = create_user_internal(db, data.into_inner()).await;
 
+    match result {
+        Ok(user) => Json(HttpResponse {
+            status: 201,
+            message: "User created".to_string(),
+            data: Some(user.to_dto()),
+        }),
+        Err(err) => Json(err.into()),
+    }
+}
+
+async fn create_user_internal(
+    db: Connection<AuthRsDatabase>,
+    data: CreateUserData,
+) -> UserResult<User> {
+    // Check if user with email already exists
     if User::get_by_email(&data.email, &db).await.is_ok() {
-        return Json(HttpResponse {
-            status: 400,
-            message: "User with that email already exists".to_string(),
-            data: None
-        });
+        return Err(UserError::EmailAlreadyExists(data.email));
     }
 
-    let user = match User::new(data.email, data.password, data.first_name, data.last_name) {
-        Ok(user) => user,
-        Err(err) => return Json(err)
-    };
-    
-    match user.insert(&db).await {
-        Ok(user) => {
-            match AuditLog::new(user.id, AuditLogEntityType::User, AuditLogAction::Create, "User created.".to_string(), user.id, None, None).insert(&db).await {
-                Ok(_) => (),
-                Err(err) => error!("{}", err)
-            }
-            
-            Json(HttpResponse {
-                status: 201,
-                message: "User created".to_string(),
-                data: Some(user)
-            })
-        },
-        Err(err) => Json(err)
+    // Create new user
+    let user = User::new(data.email, data.password, data.first_name, data.last_name)?;
+
+    // Insert user into database
+    let inserted_user = user.insert(&db).await?;
+
+    // Create audit log
+    if let Err(err) = AuditLog::new(
+        inserted_user.id,
+        AuditLogEntityType::User,
+        AuditLogAction::Create,
+        "User created.".to_string(),
+        inserted_user.id,
+        None,
+        None,
+    )
+    .insert(&db)
+    .await
+    {
+        error!("Failed to create audit log: {}", err);
     }
+
+    Ok(inserted_user)
 }

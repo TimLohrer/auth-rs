@@ -1,3 +1,3 @@
 pub mod login;
-pub mod register;
 pub mod mfa;
+pub mod register;

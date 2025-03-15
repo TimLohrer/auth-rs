@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: auth-rs-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    networks:
+      - auth-rs-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  backend:
+    image: auth-rs-backend:latest
+    container_name: auth-rs-backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      - MONGODB_URI=${MONGODB_URI}
+      - SYSTEM_EMAIL=${SYSTEM_EMAIL}
+      - SYSTEM_PASSWORD=${SYSTEM_PASSWORD}
+      - ROCKET_ENV=${ROCKET_ENV}
+    networks:
+      - auth-rs-network
+    restart: unless-stopped
+
+  frontend:
+    image: auth-rs-frontend:latest
+    container_name: auth-rs-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    environment:
+      - PUBLIC_API_URL=${PUBLIC_API_URL}
+    networks:
+      - auth-rs-network
+    restart: unless-stopped
+
+networks:
+  auth-rs-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local 
