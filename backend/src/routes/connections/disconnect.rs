@@ -1,7 +1,8 @@
-use mongodb::bson::Uuid;
+use rocket::http::Status;
 use rocket::{delete, serde::json::Json};
 use rocket_db_pools::Connection;
 
+use crate::utils::response::json_response;
 use crate::{
     auth::auth::AuthEntity,
     db::AuthRsDatabase,
@@ -11,6 +12,7 @@ use crate::{
         oauth_scope::{OAuthScope, ScopeActions},
         oauth_token::OAuthToken,
     },
+    utils::parse_uuid::parse_uuid,
 };
 
 #[allow(unused)]
@@ -19,94 +21,62 @@ pub async fn disconnect(
     db: Connection<AuthRsDatabase>,
     req_entity: AuthEntity,
     id: &str,
-) -> Json<HttpResponse<()>> {
+) -> (Status, Json<HttpResponse<()>>) {
     if req_entity.is_token()
         && (!req_entity
             .token
-            .clone()
+            .as_ref()
             .unwrap()
             .check_scope(OAuthScope::Connections(ScopeActions::Delete))
             || req_entity
                 .token
-                .clone()
+                .as_ref()
                 .unwrap()
                 .check_scope(OAuthScope::Connections(ScopeActions::All)))
     {
-        return Json(HttpResponse {
-            status: 403,
-            message: "Forbidden".to_string(),
-            data: None,
-        });
+        return json_response(HttpResponse::forbidden("Forbidden"));
     }
 
-    let uuid = match Uuid::parse_str(id) {
+    let uuid = match parse_uuid(id) {
         Ok(uuid) => uuid,
-        Err(err) => {
-            return Json(HttpResponse {
-                status: 400,
-                message: format!("Invalid UUID: {:?}", err),
-                data: None,
-            })
-        }
+        Err(err) => return json_response(err.into()),
     };
 
     if (req_entity.is_user()
         && req_entity.user_id != uuid
         && !req_entity.user.clone().unwrap().is_admin())
     {
-        return Json(HttpResponse {
-            status: 403,
-            message: "Missing permissions!".to_string(),
-            data: None,
-        });
+        return json_response(HttpResponse::forbidden("Missing permissions!"));
     }
 
     let oauth_application = match OAuthApplication::get_by_id(uuid, &db).await {
         Ok(application) => application,
-        Err(err) => {
-            return Json(HttpResponse {
-                status: err.status,
-                message: err.message,
-                data: None,
-            })
-        }
+        Err(err) => return json_response(err.into()),
     };
 
     let tokens = match OAuthToken::get_by_application_id(oauth_application.id, &db).await {
         Ok(tokens) => tokens,
         Err(err) => {
-            return Json(HttpResponse {
-                status: 500,
-                message: err.message,
-                data: None,
-            })
+            return json_response(err.into());
         }
     };
 
-    if tokens.len() == 0 {
-        return Json(HttpResponse {
-            status: 404,
-            message: "You are not connected to that application".to_string(),
-            data: None,
-        });
+    if tokens.is_empty() {
+        return json_response(HttpResponse::not_found(
+            "You are not connected to that application",
+        ));
     }
 
     for token in tokens {
         match token.delete(&db).await {
             Ok(_) => (),
             Err(err) => {
-                return Json(HttpResponse {
-                    status: 500,
-                    message: err.message,
-                    data: None,
-                })
+                return json_response(err.into());
             }
         }
     }
 
-    Json(HttpResponse {
-        status: 200,
-        message: "Successfully disconnected from application".to_string(),
-        data: None,
-    })
+    json_response(HttpResponse::success_no_data(
+        "Successfully disconnected from application",
+    ))
 }

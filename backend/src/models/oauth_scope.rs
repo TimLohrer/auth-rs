@@ -1,8 +1,8 @@
-use std::fmt::Display;
 use rocket::serde::{Serialize, Serializer};
 use std::convert::TryFrom;
+use std::fmt::Display;
 
-use rocket::serde::{Deserialize, Deserializer, de::Error};
+use rocket::serde::{de::Error, Deserialize, Deserializer};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum OAuthScope {
@@ -86,11 +86,11 @@ impl<'de> Deserialize<'de> for ScopeActions {
 impl Display for OAuthScope {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            OAuthScope::Roles(actions) => write!(f, "roles:{}", actions.to_string()),
-            OAuthScope::AuditLogs(actions) => write!(f, "audit_logs:{}", actions.to_string()),
-            OAuthScope::Users(actions) => write!(f, "user:{}", actions.to_string()),
-            OAuthScope::OAuthApplications(actions) => write!(f, "oauth_applications:{}", actions.to_string()),
-            OAuthScope::Connections(actions) => write!(f, "connections:{}", actions.to_string()),
+            OAuthScope::Roles(actions) => write!(f, "roles:{}", actions),
+            OAuthScope::AuditLogs(actions) => write!(f, "audit_logs:{}", actions),
+            OAuthScope::Users(actions) => write!(f, "user:{}", actions),
+            OAuthScope::OAuthApplications(actions) => write!(f, "oauth_applications:{}", actions),
+            OAuthScope::Connections(actions) => write!(f, "connections:{}", actions),
         }
     }
 }
@@ -148,7 +148,7 @@ impl<'de> Deserialize<'de> for OAuthScope {
             "update" => ScopeActions::Update,
             "delete" => ScopeActions::Delete,
             "*" => ScopeActions::All,
-            _ => return Err(Error::custom("Invalid scope action")),  
+            _ => return Err(Error::custom("Invalid scope action")),
         };
 
         match parts[0] {
@@ -157,7 +157,7 @@ impl<'de> Deserialize<'de> for OAuthScope {
             "user" => Ok(OAuthScope::Users(actions)),
             "oauth_applications" => Ok(OAuthScope::OAuthApplications(actions)),
             "connections" => Ok(OAuthScope::Connections(actions)),
-            _ => Err(Error::custom("Invalid scope"))
+            _ => Err(Error::custom("Invalid scope")),
         }
     }
 }

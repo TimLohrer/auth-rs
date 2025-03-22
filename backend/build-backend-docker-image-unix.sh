@@ -1,1 +1,0 @@
-docker build -t auth-rs-backend .

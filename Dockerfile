@@ -1,16 +1,33 @@
-FROM oven/bun AS builder
+FROM oven/bun:1 AS builder
 
 WORKDIR /app
 
-COPY . .
+# Copy package files
+COPY package.json package-lock.json bun.lockb .npmrc ./
+COPY .prettierrc .prettierignore ./
 
-RUN bun i
+# Install dependencies
+RUN bun install --frozen-lockfile
+
+# Copy source code
+COPY src/ ./src/
+COPY static/ ./static/
+COPY svelte.config.js tsconfig.json vite.config.ts ./
+
+# Build the application
 RUN bun run build
 
-FROM oven/bun
+# Production stage
+FROM oven/bun:1-slim
 
-COPY --from=builder /app/build .
+WORKDIR /app
 
+# Copy built assets from builder stage
+COPY --from=builder /app/build ./build
+COPY --from=builder /app/package.json ./
+
+# Expose the port the app runs on
 EXPOSE 3000
 
+# Command to run the application
 CMD ["bun", "run", "start"]

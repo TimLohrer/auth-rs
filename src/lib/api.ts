@@ -9,7 +9,7 @@ import type UserMinimal from "./models/User";
 import type UserUpdates from "./models/UserUpdates";
 
 class AuthRsApi {
-    public static baseUrl = 'https://oauth.timlohrer.de/api';//'http://localhost:8000/api';
+    public static baseUrl = 'http://localhost:8000/api';//'http://localhost:8000/api';
     private token: string | null = null;
     private currentMfaFlowId: string | null = null;
 
@@ -36,18 +36,20 @@ class AuthRsApi {
 
         if (response.ok) {
             const data = await response.json();
+
             if (data.status != 200) {
-                if (data.data?.mfaRequired) {
-                    this.currentMfaFlowId = data.data.mfaFlowId;
-                    return data.data;
-                } else {
-                    throw new Error(data.message);   
-                }
+                throw new Error(data.message);
+            }
+
+            if (data.data?.mfaRequired) {
+                this.currentMfaFlowId = data.data.mfaFlowId;
+                return data.data;
             }
             new AuthStateManager().setToken(data.data.token);
             this.token = data.data.token;
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -74,6 +76,7 @@ class AuthRsApi {
             this.token = data.data.token;
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -102,6 +105,7 @@ class AuthRsApi {
             }
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -127,6 +131,7 @@ class AuthRsApi {
             }
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -152,6 +157,7 @@ class AuthRsApi {
             }
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -175,6 +181,7 @@ class AuthRsApi {
             }
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -198,6 +205,7 @@ class AuthRsApi {
             }
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -223,6 +231,7 @@ class AuthRsApi {
             }
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -235,6 +244,7 @@ class AuthRsApi {
         const response = await fetch(`${AuthRsApi.baseUrl}/users/${user._id}`, {
             method: 'DELETE',
             headers: {
+                'Content-Type': 'application/json',
                 'Authorization': `Bearer ${this.token}`,
             },
         });
@@ -246,6 +256,7 @@ class AuthRsApi {
             }
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -271,6 +282,7 @@ class AuthRsApi {
             }
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -294,6 +306,7 @@ class AuthRsApi {
             }
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -317,6 +330,7 @@ class AuthRsApi {
             }
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -342,6 +356,7 @@ class AuthRsApi {
             }
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -365,6 +380,7 @@ class AuthRsApi {
             }
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -388,6 +404,7 @@ class AuthRsApi {
             }
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -411,6 +428,7 @@ class AuthRsApi {
             }
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -440,6 +458,7 @@ class AuthRsApi {
             }
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -464,6 +483,7 @@ class AuthRsApi {
             }
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -487,6 +507,7 @@ class AuthRsApi {
             }
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -513,6 +534,7 @@ class AuthRsApi {
             const data = await response.json();
             return data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -538,6 +560,7 @@ class AuthRsApi {
             }
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -562,6 +585,7 @@ class AuthRsApi {
             }
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -585,6 +609,7 @@ class AuthRsApi {
             }
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }
@@ -608,6 +633,7 @@ class AuthRsApi {
             }
             return data.data;
         } else {
+            console.error((await response.json()));
             throw new Error(`(${response.status}): ${response.statusText}`);
         }
     }

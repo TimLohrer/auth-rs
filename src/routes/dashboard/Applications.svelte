@@ -227,7 +227,7 @@
 {#if filteredApplications.length < 1}
     <div class="flex flex-col items-center justify-center gap-[25px] h-full w-full">
         <BotOff size="75" class="opacity-40" />
-        <p class="text-[20px] opacity-50">You don't have any OAuth apps.</p>
+        <p class="text-[20px] opacity-50">{onlyShowOwned ? 'You don\'t have any' : 'There are currently no'} OAuth apps.</p>
             <!-- svelte-ignore a11y_click_events_have_key_events -->
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
             <p

@@ -32,17 +32,18 @@
         name: string;
         icon: string;
         requiredRoleId: string | null;
+        allowSystemUser: boolean;
     }[] = [
-        { name: 'Your Profile', icon: 'user', requiredRoleId: null },
-        { name: 'Security', icon: 'shield', requiredRoleId: null },
-        { name: 'Connections', icon: 'link', requiredRoleId: null },
-        { name: 'OAuth Applications', icon: 'code-xml', requiredRoleId: null },
-        { name: 'Logs', icon: 'clipboard-list', requiredRoleId: null },
-        { name: 'SPACER', icon: '', requiredRoleId: UserMinimal.ADMIN_ROLE_ID },
-        { name: 'Users', icon: 'users', requiredRoleId: UserMinimal.ADMIN_ROLE_ID },
-        { name: 'Roles', icon: 'crown', requiredRoleId: UserMinimal.ADMIN_ROLE_ID },
-        { name: 'All OAuth Apps', icon: 'code-xml', requiredRoleId: UserMinimal.ADMIN_ROLE_ID },
-        { name: 'Global Logs', icon: 'scroll-text', requiredRoleId: UserMinimal.ADMIN_ROLE_ID },
+        { name: 'Your Profile', icon: 'user', requiredRoleId: null, allowSystemUser: true },
+        { name: 'Security', icon: 'shield', requiredRoleId: null, allowSystemUser: true },
+        { name: 'Connections', icon: 'link', requiredRoleId: null, allowSystemUser: false },
+        { name: 'OAuth Applications', icon: 'code-xml', requiredRoleId: null, allowSystemUser: true },
+        { name: 'Logs', icon: 'clipboard-list', requiredRoleId: null, allowSystemUser: true },
+        { name: 'SPACER', icon: '', requiredRoleId: UserMinimal.ADMIN_ROLE_ID, allowSystemUser: true },
+        { name: 'Users', icon: 'users', requiredRoleId: UserMinimal.ADMIN_ROLE_ID, allowSystemUser: true },
+        { name: 'Roles', icon: 'crown', requiredRoleId: UserMinimal.ADMIN_ROLE_ID, allowSystemUser: true },
+        { name: 'All OAuth Apps', icon: 'code-xml', requiredRoleId: UserMinimal.ADMIN_ROLE_ID, allowSystemUser: true },
+        { name: 'Global Logs', icon: 'scroll-text', requiredRoleId: UserMinimal.ADMIN_ROLE_ID, allowSystemUser: true },
     ];
     
     onMount(async () => {
@@ -58,14 +59,16 @@
     <div class="flex flex-row items-center h-[80%] w-[70%] border-[2.5px] border-[#333] rounded-md" style="padding: 10px;">
         <div class="flex flex-col justify-between h-[90%]">
             <div class="flex flex-col gap-[15px]">
-                {#each TABS.filter(t => t.requiredRoleId ? user?.roles?.includes(t.requiredRoleId) : true) as tab, index}
-                    {#if tab.name == 'SPACER'}
-                        <!-- svelte-ignore element_invalid_self_closing_tag -->
-                        <div class="flex items-center justify-center w-[275px] h-[2px] bg-[#333]" style="margin-top: 20px;">
-                            <p class="flex absolute text-center text-[14px] bg-black" style="padding: 0 10px;">Admin</p>
-                        </div>
-                    {:else}
-                        <SidebarButton tab={tab} active={currentTabIndex == index} selectTab={() => currentTabIndex = index} />
+                {#each TABS as tab, index}
+                    {#if tab.requiredRoleId ? user?.roles?.includes(tab.requiredRoleId) : true && user && UserMinimal.isSystemAdmin(user) ? tab.allowSystemUser : true}
+                        {#if tab.name == 'SPACER'}
+                            <!-- svelte-ignore element_invalid_self_closing_tag -->
+                            <div class="flex items-center justify-center w-[275px] h-[2px] bg-[#333]" style="margin-top: 20px;">
+                                <p class="flex absolute text-center text-[14px] bg-black" style="padding: 0 10px;">Admin</p>
+                            </div>
+                        {:else}
+                            <SidebarButton tab={tab} active={currentTabIndex == index} selectTab={() => currentTabIndex = index} />
+                        {/if}
                     {/if}
                 {/each}
             </div>
@@ -89,11 +92,13 @@
                 {:else if currentTabIndex == 4}
                     <Logs bind:api bind:user bind:users bind:roles bind:applications bind:auditLogs />
                 {:else if currentTabIndex == 6}
-                    <Users bind:api bind:users bind:roles />
+                    <Users bind:api bind:currentUser={user} bind:users bind:roles />
                 {:else if currentTabIndex == 7}
                     <Roles bind:api bind:roles />
                 {:else if currentTabIndex == 8}
                     <Applications bind:api bind:user bind:applications onlyShowOwned={false} />
+                {:else if currentTabIndex == 9}
+                    <Logs bind:api bind:user bind:users bind:roles bind:applications bind:auditLogs />
                 {/if}
             {/if}
         </div>

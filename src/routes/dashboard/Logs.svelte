@@ -2,6 +2,7 @@
 	import type AuthRsApi from "$lib/api";
 	import { AuditLog, AuditLogAction, AuditLogEntityType } from "$lib/models/AuditLog";
 	import type OAuthApplication from "$lib/models/OAuthApplication";
+	import type Role from "$lib/models/Role";
 	import UserMinimal from "$lib/models/User";
 	import { onMount } from "svelte";
 

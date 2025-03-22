@@ -1,9 +1,23 @@
-use std::collections::HashMap;
+use crate::utils::parse_uuid::parse_uuid;
+use crate::utils::response::json_response;
+use crate::{
+    auth::auth::AuthEntity,
+    db::AuthRsDatabase,
+    errors::ApiError,
+    models::{
+        audit_log::{AuditLog, AuditLogAction, AuditLogEntityType},
+        http_response::HttpResponse,
+        oauth_application::{OAuthApplication, OAuthApplicationDTO, OAuthApplicationResult},
+    },
+};
 use mongodb::bson::Uuid;
-use rocket::{error, patch, serde::{json::Json, Deserialize}};
+use rocket::http::Status;
+use rocket::{
+    error, patch,
+    serde::{json::Json, Deserialize},
+};
 use rocket_db_pools::Connection;
-
-use crate::{auth::auth::AuthEntity, db::AuthRsDatabase, models::{audit_log::{AuditLog, AuditLogAction, AuditLogEntityType}, http_response::HttpResponse, oauth_application::{OAuthApplication, OAuthApplicationMinimal}}};
+use std::collections::HashMap;
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "rocket::serde")]
@@ -15,88 +29,155 @@ pub struct UpdateOAuthApplicationData {
 }
 
 #[allow(unused)]
-#[patch("/oauth-applications/<id>", format = "json", data = "<data>")] 
-pub async fn update_oauth_application(db: Connection<AuthRsDatabase>, req_entity: AuthEntity, id: &str, data: Json<UpdateOAuthApplicationData>) -> Json<HttpResponse<OAuthApplicationMinimal>> { 
-    let data = data.into_inner();
+#[patch("/oauth-applications/<id>", format = "json", data = "<data>")]
+pub async fn update_oauth_application(
+    db: Connection<AuthRsDatabase>,
+    req_entity: AuthEntity,
+    id: &str,
+    data: Json<UpdateOAuthApplicationData>,
+) -> (Status, Json<HttpResponse<OAuthApplicationDTO>>) {
+    let result = update_oauth_application_internal(db, req_entity, id, data.into_inner()).await;
 
+    match result {
+        Ok(app) => json_response(HttpResponse::success(
+            "OAuth Application updated",
+            app.to_dto(),
+        )),
+        Err(err) => json_response(err.into()),
+    }
+}
+
+struct OAuthApplicationUpdate {
+    app: OAuthApplication,
+    old_values: HashMap<String, String>,
+    new_values: HashMap<String, String>,
+    modified: bool,
+}
+
+impl OAuthApplicationUpdate {
+    fn new(app: OAuthApplication) -> Self {
+        Self {
+            app,
+            old_values: HashMap::new(),
+            new_values: HashMap::new(),
+            modified: false,
+        }
+    }
+
+    fn update_field<T: ToString>(&mut self, field: &str, old_value: T, new_value: T) {
+        self.old_values
+            .insert(field.to_string(), old_value.to_string());
+        self.new_values
+            .insert(field.to_string(), new_value.to_string());
+        self.modified = true;
+    }
+
+    fn update_name(&mut self, new_name: String) {
+        if self.app.name != new_name {
+            let old_name = self.app.name.clone();
+            self.update_field("name", old_name, new_name.clone());
+            self.app.name = new_name;
+        }
+    }
+
+    fn update_description(&mut self, new_description: Option<String>) {
+        if self.app.description != new_description {
+            let old_description = self
+                .app
+                .description
+                .clone()
+                .unwrap_or_else(|| "None".to_string());
+            let new_desc = match new_description {
+                Some(desc) if !desc.is_empty() => {
+                    let desc_clone = desc.clone();
+                    self.app.description = Some(desc);
+                    desc_clone
+                }
+                _ => {
+                    self.app.description = None;
+                    "None".to_string()
+                }
+            };
+            self.update_field("description", old_description, new_desc);
+        }
+    }
+
+    fn update_redirect_uris(&mut self, new_uris: Vec<String>) {
+        if self.app.redirect_uris != new_uris {
+            let old_uris = self.app.redirect_uris.join(", ");
+            let new_uris_str = new_uris.join(", ");
+            self.update_field("redirect_uris", old_uris, new_uris_str);
+            self.app.redirect_uris = new_uris;
+        }
+    }
+
+    async fn save(
+        self,
+        db: &Connection<AuthRsDatabase>,
+        req_user_id: Uuid,
+    ) -> OAuthApplicationResult<OAuthApplication> {
+        if !self.modified {
+            return Ok(self.app);
+        }
+
+        let updated_app = self.app.update(db).await?;
+
+        // Create audit log
+        if let Err(err) = AuditLog::new(
+            updated_app.id,
+            AuditLogEntityType::OAuthApplication,
+            AuditLogAction::Update,
+            "OAuthApplication updated.".to_string(),
+            req_user_id,
+            Some(self.old_values),
+            Some(self.new_values),
+        )
+        .insert(db)
+        .await
+        {
+            error!("Failed to create audit log: {}", err);
+        }
+
+        Ok(updated_app)
+    }
+}
+
+async fn update_oauth_application_internal(
+    db: Connection<AuthRsDatabase>,
+    req_entity: AuthEntity,
+    id: &str,
+    data: UpdateOAuthApplicationData,
+) -> OAuthApplicationResult<OAuthApplication> {
+    // Basic permission checks
     if !req_entity.is_user() {
-        return Json(HttpResponse {
-            status: 403,
-            message: "Forbidden".to_string(),
-            data: None
-        });
+        return Err(ApiError::Forbidden("Forbidden".to_string()).into());
     }
 
-    let uuid = match Uuid::parse_str(id) {
-        Ok(uuid) => uuid,
-        Err(err) => return Json(HttpResponse {
-            status: 400,
-            message: format!("Invalid UUID: {:?}", err),
-            data: None
-        })
-    };
+    let uuid = parse_uuid(id).map_err(|e| ApiError::BadRequest(e.to_string()))?;
+    let app = OAuthApplication::get_by_id(uuid, &db).await?;
 
-    let old_oauth_application = match OAuthApplication::get_by_id(uuid, &db).await {
-        Ok(oauth_application) => oauth_application,
-        Err(err) => return Json(err)
-    };
-
-    if req_entity.user_id != old_oauth_application.owner && !req_entity.user.unwrap().is_admin() {
-        return Json(HttpResponse {
-            status: 403,
-            message: "Missing permissions!".to_string(),
-            data: None
-        });
+    let req_user = req_entity
+        .user()
+        .map_err(|_| ApiError::Forbidden("Forbidden".to_string()))?;
+    if req_entity.user_id != app.owner && !req_user.is_admin() {
+        return Err(ApiError::Forbidden("Missing permissions!".to_string()).into());
     }
 
-    let mut new_oauth_application = match old_oauth_application.clone().to_full(&db).await {
-        Ok(oauth_application) => oauth_application,
-        Err(err) => return Json(err)
-    };
+    let mut update = OAuthApplicationUpdate::new(app);
 
-    let mut old_values: HashMap<String, String> = HashMap::new();
-    let mut new_values: HashMap<String, String> = HashMap::new();
-
-    if data.name.is_some() && old_oauth_application.name != data.name.clone().unwrap() {
-        new_oauth_application.name = data.name.unwrap();
-        old_values.insert("name".to_string(), old_oauth_application.name.clone());
-        new_values.insert("name".to_string(), new_oauth_application.name.clone());
-    }
-    if data.description.is_some() && old_oauth_application.description != data.description.clone() {
-        new_oauth_application.description = match data.description.clone().unwrap().is_empty() {
-            true => None,
-            false => Some(data.description.unwrap())
-        };
-        old_values.insert("description".to_string(), old_oauth_application.description.clone().unwrap_or("None".to_string()));
-        new_values.insert("description".to_string(), new_oauth_application.description.clone().unwrap_or("None".to_string()));
-    }
-    if data.redirect_uris.is_some() && old_oauth_application.redirect_uris != data.redirect_uris.clone().unwrap() {
-        new_oauth_application.redirect_uris = data.redirect_uris.unwrap();
-        old_values.insert("redirect_uris".to_string(), old_oauth_application.redirect_uris.clone().join(", "));
-        new_values.insert("redirect_uris".to_string(), new_oauth_application.redirect_uris.clone().join(", "));
+    // Apply updates
+    if let Some(name) = data.name {
+        update.update_name(name);
     }
 
-    if new_values.is_empty() {
-        return Json(HttpResponse {
-            status: 200,
-            message: "No updates applied.".to_string(),
-            data: Some(new_oauth_application.to_minimal())
-        });
+    if let Some(description) = data.description {
+        update.update_description(Some(description));
     }
 
-    match new_oauth_application.update(&db).await {
-        Ok(oauth_application) => {
-            match AuditLog::new(oauth_application.id, AuditLogEntityType::OAuthApplication, AuditLogAction::Update, "OAuthApplication updated.".to_string(), req_entity.user_id, Some(old_values), Some(new_values)).insert(&db).await {
-                Ok(_) => (),
-                Err(err) => error!("{}", err)
-            }
-            
-            Json(HttpResponse {
-                status: 200,
-                message: "OAuth Application updated".to_string(),
-                data: Some(oauth_application)
-            })
-        },
-        Err(err) => Json(err)
+    if let Some(redirect_uris) = data.redirect_uris {
+        update.update_redirect_uris(redirect_uris);
     }
+
+    // Save changes
+    update.save(&db, req_entity.user_id).await
 }

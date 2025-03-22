@@ -5,13 +5,14 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.86"
+base64 = "0.22.1"
 dotenv = "0.15.0"
 lazy_static = "1.5.0"
 mongodb = { version = "3.1.0", features = ["sync"] }
-pwhash = "1.0.0"
+argon2 = "0.5.3"
 rand = "0.9.0"
 rocket = { version = "0.5.0", features = ["json"] }
 rocket_cors = "0.6.0"
-rocket_db_pools = { version = "0.1.0", features = ["mongodb"] }
-serde_json = "1.0.127"
+rocket_db_pools = { version = "0.2.0", features = ["mongodb"] }
+thiserror = "2.0.12"
 totp-rs = { version = "5.6.0", features = ["gen_secret", "otpauth", "qr"] }
