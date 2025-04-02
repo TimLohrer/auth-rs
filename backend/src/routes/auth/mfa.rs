@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-
 use mongodb::bson::Uuid;
 use rocket::http::Status;
 use rocket::{

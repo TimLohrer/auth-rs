@@ -2,6 +2,7 @@ use mongodb::bson::Uuid;
 use rocket::serde;
 use std::env::VarError;
 use thiserror::Error;
+use webauthn_rs::error::WebauthnError;
 
 use crate::models::http_response::HttpResponse;
 use crate::models::oauth_application::OAuthApplicationError;
@@ -80,6 +81,18 @@ pub enum AppError {
 
     #[error("HTTP response error: {0}")]
     HttpResponseError(String),
+
+    #[error("Webauthn error: {0}")]
+    WebauthnError(#[from] WebauthnError),
+
+    #[error("Invalid state: {0}")]
+    InvalidState(String),
+
+    #[error("Invalid UUID")]
+    InvalidUUID,
+
+    #[error("JSON serialization error: {0}")]
+    JsonSerializationError(#[from] serde_json::Error),
 }
 
 // Implement From<HttpResponse<T>> for AppError
@@ -203,15 +216,34 @@ impl<T> From<AppError> for HttpResponse<T> {
                 message: format!("Validation error: {}", msg),
                 data: None,
             },
-            AppError::HttpResponseError(msg) => HttpResponse {
-                status: 500,
-                message: msg,
-                data: None,
-            },
-
             AppError::InvalidOrMissingFields(msg) => HttpResponse {
                 status: 400,
                 message: format!("Invalid or missing fields: {}", msg),
+                data: None,
+            },
+            AppError::HttpResponseError(msg) => HttpResponse {
+                status: 500,
+                message: format!("HTTP error: {}", msg),
+                data: None,
+            },
+            AppError::WebauthnError(err) => HttpResponse {
+                status: 400,
+                message: format!("Passkey error: {}", err),
+                data: None,
+            },
+            AppError::InvalidState(msg) => HttpResponse {
+                status: 400,
+                message: format!("Invalid state: {}", msg),
+                data: None,
+            },
+            AppError::InvalidUUID => HttpResponse {
+                status: 400,
+                message: "Invalid UUID".to_string(),
+                data: None,
+            },
+            AppError::JsonSerializationError(err) => HttpResponse {
+                status: 500,
+                message: format!("JSON serialization error: {}", err),
                 data: None,
             },
         }
@@ -241,6 +273,12 @@ pub enum ApiError {
 
     #[error("App error: {0}")]
     AppError(#[from] AppError),
+
+    #[error("Invalid state: {0}")]
+    InvalidState(String),
+
+    #[error("Invalid UUID")]
+    InvalidUUID,
 }
 
 // Implement conversion from ApiError to HttpResponse
@@ -252,7 +290,17 @@ impl<T> From<ApiError> for HttpResponse<T> {
             ApiError::Unauthorized(msg) => HttpResponse::unauthorized(&msg),
             ApiError::Forbidden(msg) => HttpResponse::forbidden(&msg),
             ApiError::InternalError(msg) => HttpResponse::internal_error(&msg),
-            ApiError::AppError(err) => HttpResponse::from(err),
+            ApiError::AppError(err) => err.into(),
+            ApiError::InvalidState(msg) => HttpResponse {
+                status: 400,
+                message: format!("Invalid state: {}", msg),
+                data: None,
+            },
+            ApiError::InvalidUUID => HttpResponse {
+                status: 400,
+                message: "Invalid UUID".to_string(),
+                data: None,
+            },
         }
     }
 }
@@ -327,6 +375,8 @@ impl From<ApiError> for RoleError {
             ApiError::Unauthorized(_) => RoleError::SystemRoleModification,
             ApiError::InternalError(msg) => RoleError::InternalServerError(msg),
             ApiError::AppError(err) => err.into(),
+            ApiError::InvalidState(msg) => RoleError::DatabaseError(msg),
+            ApiError::InvalidUUID => RoleError::NotFound(Uuid::new()),
         }
     }
 }
@@ -340,7 +390,23 @@ impl From<ApiError> for OAuthApplicationError {
             ApiError::Unauthorized(msg) => OAuthApplicationError::InvalidData(msg),
             ApiError::InternalError(msg) => OAuthApplicationError::InternalServerError(msg),
             ApiError::AppError(err) => err.into(),
+            ApiError::InvalidState(msg) => OAuthApplicationError::InvalidData(msg),
+            ApiError::InvalidUUID => OAuthApplicationError::NotFound(Uuid::new()),
         }
+    }
+}
+
+// Add implementation for converting from a string to AppError for WebAuthnError
+impl From<String> for AppError {
+    fn from(error: String) -> Self {
+        AppError::InternalServerError(error)
+    }
+}
+
+// Now we can properly convert WebAuthnError to a string and then to AppError
+impl From<WebauthnError> for ApiError {
+    fn from(error: WebauthnError) -> Self {
+        ApiError::AppError(AppError::WebauthnError(error))
     }
 }
 
@@ -354,6 +420,8 @@ impl From<ApiError> for SettingsError {
             ApiError::Unauthorized(_) => SettingsError::Unauthorized("Unauthorized".to_string()),
             ApiError::InternalError(msg) => SettingsError::InternalServerError(msg),
             ApiError::AppError(err) => err.into(),
+            ApiError::InvalidState(msg) => SettingsError::DatabaseError(msg),
+            ApiError::InvalidUUID => SettingsError::DatabaseError("Invalid UUID".to_string()),
         }
     }
 }

@@ -20,6 +20,7 @@ use rocket_db_pools::{
 
 use super::{http_response::HttpResponse, oauth_application::OAuthApplication, oauth_token::OAuthToken};
 use super::user_error::{UserError, UserResult};
+use super::passkey::{Passkey, PasskeyDTO};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
@@ -33,7 +34,7 @@ pub struct User {
     pub password_hash: String,
     pub salt: String,
     pub totp_secret: Option<String>,
-    pub passkeys: Option<String>, // replace this with the actual DTO, this is just a placeholder so the database can already generate the field.
+    pub passkeys: Vec<Passkey>,
     pub token: String,
     pub roles: Vec<Uuid>,
     pub disabled: bool,
@@ -85,7 +86,7 @@ impl User {
             last_name: self.last_name.clone(),
             roles: self.roles.clone(),
             mfa: self.totp_secret.is_some(),
-            passkeys: self.passkeys.is_some(),
+            passkeys: !self.passkeys.is_empty(),
             disabled: self.disabled,
             created_at: self.created_at,
         }
@@ -112,7 +113,7 @@ impl User {
             password_hash,
             salt: salt.as_str().to_string(),
             totp_secret: None,
-            passkeys: None,
+            passkeys: Vec::new(),
             token: Self::generate_token(),
             roles: Vec::from([*DEFAULT_ROLE_ID]),
             disabled: false,
@@ -143,7 +144,7 @@ impl User {
             password_hash,
             salt: salt.as_str().to_string(),
             totp_secret: None,
-            passkeys: None,
+            passkeys: Vec::new(),
             token: Self::generate_token(),
             roles: roles
                 .iter()
@@ -385,5 +386,58 @@ impl User {
     fn get_collection(connection: &Connection<AuthRsDatabase>) -> Collection<Self> {
         let db = get_main_db(connection);
         db.collection(Self::COLLECTION_NAME)
+    }
+
+    // Add a new passkey to the user
+    pub fn add_passkey(&mut self, passkey: Passkey) {
+        self.passkeys.push(passkey);
+    }
+
+    // Find a passkey by its ID
+    pub fn find_passkey_by_id(&self, passkey_id: &Uuid) -> Option<&Passkey> {
+        self.passkeys.iter().find(|p| &p.id == passkey_id)
+    }
+
+    // Find a passkey by its credential ID (base64 encoded)
+    pub fn find_passkey_by_credential_id(&self, credential_id: &str) -> Option<&Passkey> {
+        self.passkeys.iter().find(|p| p.credential_id == credential_id)
+    }
+
+    // Remove a passkey by its ID
+    pub fn remove_passkey(&mut self, passkey_id: &Uuid) -> bool {
+        let initial_len = self.passkeys.len();
+        self.passkeys.retain(|p| &p.id != passkey_id);
+        self.passkeys.len() < initial_len
+    }
+
+    // Get all passkey DTOs for a user
+    pub fn get_passkey_dtos(&self) -> Vec<PasskeyDTO> {
+        self.passkeys.iter().map(|pk| pk.to_dto()).collect()
+    }
+
+    // Find user by passkey credential ID
+    pub async fn find_by_credential_id(
+        connection: &Connection<AuthRsDatabase>,
+        credential_id: &str,
+    ) -> Result<User, HttpResponse<()>> {
+        let db = Self::get_collection(connection);
+        
+        let filter = doc! {
+            "passkeys.credentialId": credential_id
+        };
+        
+        match db.find_one(filter, None).await {
+            Ok(Some(user)) => Ok(user),
+            Ok(None) => Err(HttpResponse {
+                status: 404,
+                message: "User not found with that credential".to_string(),
+                data: None,
+            }),
+            Err(err) => Err(HttpResponse {
+                status: 500,
+                message: format!("Error finding user by credential: {:?}", err),
+                data: None,
+            }),
+        }
     }
 }

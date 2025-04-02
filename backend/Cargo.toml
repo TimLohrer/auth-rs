@@ -16,3 +16,7 @@ rocket_cors = "0.6.0"
 rocket_db_pools = { version = "0.2.0", features = ["mongodb"] }
 thiserror = "2.0.12"
 totp-rs = { version = "5.6.0", features = ["gen_secret", "otpauth", "qr"] }
+webauthn-rs = "0.3.2"
+serde_json = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+url = "2.5.0"
