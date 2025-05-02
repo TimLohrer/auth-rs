@@ -1,4 +1,5 @@
 use super::{http_response::HttpResponse, oauth_scope::OAuthScope};
+use crate::auth::jwt::{AuthRsJWTClaims, AuthRsJWTHandler};
 use crate::db::{get_main_db, AuthRsDatabase};
 use crate::errors::AppError;
 use anyhow::Result;
@@ -78,19 +79,11 @@ pub struct OAuthToken {
 impl OAuthToken {
     pub const COLLECTION_NAME: &'static str = "oauth-tokens";
 
-    fn generate_token() -> String {
-        let mut rng = rand::rng();
-        let token: String = (0..128)
-            .map(|_| {
-                let idx = rng.random_range(0..62);
-                match idx {
-                    0..=9 => (b'0' + idx as u8) as char,
-                    10..=35 => (b'a' + (idx - 10) as u8) as char,
-                    _ => (b'A' + (idx - 36) as u8) as char,
-                }
-            })
-            .collect();
-        token
+    fn generate_token(target_user_id: Uuid) -> String {
+        let claims = AuthRsJWTClaims::new(target_user_id.to_string());
+        AuthRsJWTHandler::new()
+            .generate_token(claims)
+            .map_err(|e| println!("Error generating token: {:?}", e))
     }
 
     /// Checks if the token is expired
@@ -118,7 +111,7 @@ impl OAuthToken {
             id: Uuid::new(),
             application_id,
             user_id,
-            token: Self::generate_token(),
+            token: Self::generate_token(user_id),
             scope,
             expires_in,
             created_at: DateTime::now(),

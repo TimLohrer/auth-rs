@@ -175,7 +175,7 @@ impl MfaHandler {
 
         user.totp_secret = None;
 
-        let new_token = User::generate_token();
+        let new_token = User::generate_token(user.id);
         new_values.insert("token".to_string(), "***********".to_string());
         old_values.insert("token".to_string(), "***********".to_string());
 

@@ -2,6 +2,7 @@ use super::user_error::{UserError, UserResult};
 use super::{
     http_response::HttpResponse, oauth_application::OAuthApplication, oauth_token::OAuthToken,
 };
+use crate::auth::jwt::{AuthRsJWTClaims, AuthRsJWTHandler};
 use crate::{
     db::{get_main_db, AuthRsDatabase},
     ADMIN_ROLE_ID, DEFAULT_ROLE_ID, SYSTEM_USER_ID,
@@ -58,14 +59,17 @@ pub struct UserDTO {
 impl User {
     pub const COLLECTION_NAME: &'static str = "users";
 
-    pub fn generate_token() -> String {
+    pub fn generate_token(user_id: Uuid) -> String {
         // Generate a more secure token using a cryptographically secure RNG
-        let mut rng = rand::rng();
-        let mut buffer = [0u8; 64]; // 512 bits of randomness
-        rng.fill(&mut buffer);
+        // let mut rng = rand::rng();
+        // let mut buffer = [0u8; 64]; // 512 bits of randomness
+        // rng.fill(&mut buffer);
 
-        // Convert to base64 for string representation
-        general_purpose::STANDARD.encode(buffer)
+        // // Convert to base64 for string representation
+        // general_purpose::STANDARD.encode(buffer)
+        let claims = AuthRsJWTClaims::new(user_id.to_string());
+        AuthRsJWTHandler::new().generate_token(claims)
+            .map_err(|e| println!("Error generating token: {:?}", e))
     }
 
     pub fn verify_password(&self, password: &str) -> Result<(), UserError> {
@@ -102,15 +106,17 @@ impl User {
             .map_err(|_| UserError::PasswordHashingError)?
             .to_string();
 
+        let id = Uuid::new();
+
         Ok(Self {
-            id: Uuid::new(),
+            id,
             email,
             first_name,
             last_name,
             password_hash,
             salt: salt.as_str().to_string(),
             totp_secret: None,
-            token: Self::generate_token(),
+            token: Self::generate_token(id),
             roles: Vec::from([*DEFAULT_ROLE_ID]),
             disabled: false,
             created_at: DateTime::now(),
@@ -140,7 +146,7 @@ impl User {
             password_hash,
             salt: salt.as_str().to_string(),
             totp_secret: None,
-            token: Self::generate_token(),
+            token: Self::generate_token(id),
             roles: roles
                 .iter()
                 .map(|role| Uuid::parse_str(role).unwrap())

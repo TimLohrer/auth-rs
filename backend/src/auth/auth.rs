@@ -199,21 +199,21 @@ impl<'r> FromRequest<'r> for OptionalAuthEntity {
                 let token_parts: Vec<&str> = token.split_whitespace().collect();
 
                 if token_parts.len() != 2 {
-                    return Outcome::Error((Status::Unauthorized, AuthError::InvalidToken));
+                    return Outcome::Success(OptionalAuthEntity::from_empty());
                 }
 
                 let token_type = token_parts[0];
                 let token_value = token_parts[1];
 
                 if token_value.is_empty() {
-                    return Outcome::Error((Status::Unauthorized, AuthError::InvalidToken));
+                    return Outcome::Success(OptionalAuthEntity::from_empty());
                 }
 
                 match token_type {
                     "Bearer" => match User::get_full_by_token(token_value.to_owned(), &db).await {
                         Ok(user) => {
                             if user.disabled {
-                                return Outcome::Error((Status::Forbidden, AuthError::Forbidden));
+                                return Outcome::Success(OptionalAuthEntity::from_empty());
                             }
 
                             Outcome::Success(OptionalAuthEntity::from_user(user))
@@ -221,20 +221,15 @@ impl<'r> FromRequest<'r> for OptionalAuthEntity {
                         Err(_) => match OAuthToken::get_by_token(token_value, &db).await {
                             Ok(token) => {
                                 if token.is_expired() {
-                                    return Outcome::Error((
-                                        Status::Unauthorized,
-                                        AuthError::InvalidToken,
-                                    ));
+                                    return Outcome::Success(OptionalAuthEntity::from_empty());
                                 }
 
                                 Outcome::Success(OptionalAuthEntity::from_token(token))
                             }
-                            Err(_) => {
-                                Outcome::Error((Status::Unauthorized, AuthError::Unauthorized))
-                            }
+                            Err(_) => Outcome::Success(OptionalAuthEntity::from_empty()),
                         },
                     },
-                    _ => Outcome::Error((Status::Unauthorized, AuthError::InvalidToken)),
+                    _ => Outcome::Success(OptionalAuthEntity::from_empty()),
                 }
             }
             None => Outcome::Success(OptionalAuthEntity::from_empty()),
