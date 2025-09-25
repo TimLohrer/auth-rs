@@ -20,7 +20,7 @@
 - [x] ~~New "Your Profile" page style +~~ edit button
 - [x] Tooltips -> "sv-tooltip"
 - [x] render invalid ouath url errors -> auto redirect, fine for now
-- [ ] raw json viewer -> debug mode???
+- [x] raw json viewer -> debug mode???
 - [x] show code users used to join in logs
 - [x] show code full warning
 - [x] add copy join url button to registration codes

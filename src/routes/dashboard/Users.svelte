@@ -11,6 +11,7 @@
 	import type Role from '$lib/models/Role';
 	import DateUtils from '$lib/dateUtils';
 	import Tooltip from 'sv-tooltip';
+	import { jsonAction } from '$lib/utils/jsonAttributes';
 
     export let api: AuthRsApi;
     export let currentUser: User;
@@ -296,6 +297,7 @@
             <div
                 class="flex flex-col items-start justify start gap-[10px] min-w-[300px] border-[2px] border-[#333] rounded-md"
                 style="padding: 15px;"
+                use:jsonAction={{ data: user, title: "User Data" }}
             >
                 <div class="flex flex-row justify-between w-full gap-[20px]">
                     <p class="text-[20px] font-bold h-[20px]">{`${user.firstName} ${user.lastName}`.length > 20 ? `${user.firstName} ${user.lastName}`.substring(0, 19) + '...' : `${user.firstName} ${user.lastName}`}</p>

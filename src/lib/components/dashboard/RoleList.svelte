@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type Role from "$lib/models/Role";
 	import User from "$lib/models/User";
+	import { jsonAction, jsonAttributes } from "$lib/utils/jsonAttributes";
 	import { PlusCircle, X } from "lucide-svelte";
 	import Tooltip from "sv-tooltip";
 
@@ -31,7 +32,11 @@
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="name-input flex items-center flex-wrap outline-none gap-[10px] rounded-md w-[275px] {disableOutline ? '' : 'border-[2px] border-[#333]'}" style={disableOutline ? "" : "padding: 10px;"}>
         {#each roles as role}
-            <div class="flex flex-row items-center justify-between gap-[10px] text-[13px] h-[40px] bg-[#111] rounded-md" style="padding: 10px; {disableOutline ? 'margin: 0 2.5px;' : ''}">
+            <div
+                class="flex flex-row items-center justify-between gap-[10px] text-[13px] h-[40px] bg-[#111] rounded-md"
+                style="padding: 10px; {disableOutline ? 'margin: 0 2.5px;' : ''}"
+                use:jsonAction={{ data: role, title: "Role Data" }}
+            >
                 <p style="color: white !important;">{role.name}</p>
                 {#if role._id != User.DEFAULT_ROLE_ID && !(role._id == User.ADMIN_ROLE_ID && !isSystemAdmin) && !readOnly}
                     <Tooltip tip="Remove Role" right color="var(--color-red-600)">

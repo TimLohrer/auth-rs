@@ -12,6 +12,7 @@
 	import Tooltip from 'sv-tooltip';
 	import DateUtils from '$lib/dateUtils';
 	import PasskeyUpdates from '$lib/models/PasskeyUpdates';
+	import { jsonAction } from '$lib/utils/jsonAttributes';
 
     export let api: AuthRsApi;
     export let user: User;
@@ -262,7 +263,7 @@
                                     {/if}
                                 </div>
                             {:else}
-                                <div class="flex flex-row justify-between gap-[20px] w-full">
+                                <div class="flex flex-row justify-between gap-[20px] w-full" use:jsonAction={{ data: passkey, title: "Passkey Data" }}>
                                     <p class="text-[20px] font-bold h-[20px]">{passkey.name.length > 20 ? passkey.name.substring(0, 19) + '...' : passkey.name}</p>
                                     <div class="flex flex-row">
                                         <Tooltip tip="Edit Passkey" bottom>

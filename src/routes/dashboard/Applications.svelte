@@ -11,6 +11,7 @@
 	import type User from '$lib/models/User';
 	import DateUtils from '$lib/dateUtils';
     import Tooltip from "sv-tooltip";
+	import { jsonAction } from '$lib/utils/jsonAttributes';
 
     export let api: AuthRsApi;
     export let user: User;
@@ -214,7 +215,11 @@
     </div>
     <div class="flex flex-wrap overflow-y-scroll overflow-x-hidden gap-[25px]">
         {#each filteredApplications as application}
-            <div class="flex flex-col items-start justify-start gap-[10px] min-w-[350px] max-w-[400px] min-h-[200px] border-[2px] border-[#333] rounded-md" style="padding: 15px;">
+            <div
+                class="flex flex-col items-start justify-start gap-[10px] min-w-[350px] max-w-[400px] min-h-[200px] border-[2px] border-[#333] rounded-md"
+                style="padding: 15px;"
+                use:jsonAction={{ data: application, title: "OAuth Application Data" }}
+            >
                 <div class="flex flex-row justify-between gap-[20px] w-full">
                     <p class="text-[20px] font-bold h-[20px]">{application.name.length > 20 ? application.name.substring(0, 19) + '...' : application.name}</p>
                     <div class="flex flex-row">

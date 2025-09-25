@@ -9,6 +9,7 @@
 	import TextInput from '$lib/components/global/TextInput.svelte';
 	import Popup from '$lib/components/global/Popup.svelte';
 	import UserUpdates from '$lib/models/UserUpdates';
+	import { jsonAction } from '$lib/utils/jsonAttributes';
 
     export let api: AuthRsApi;
     export let user: User;
@@ -74,15 +75,17 @@
 {/if}
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<div class="absolute flex flex-col min-h-[70px] items-center justify-center self-end" style="margin-right: 50px;">
+<div class="absolute flex min-h-[70px] items-center justify-center self-end" style="margin-right: 50px;">
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <p
-        class="border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white transition-all border-[1.5px] cursor-pointer rounded-md"
-        style="padding: 10px;"
-        on:click={showEditUserPopup}
+    class="border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white transition-all border-[1.5px] cursor-pointer rounded-md"
+    style="padding: 10px;"
+    on:click={showEditUserPopup}
+    use:jsonAction={{ data: user, title: "User Data" }}
     >Edit Profile</p>
 </div>
-<div class="flex flex-col items-start justify-start h-[100%] w-full gap-[10px]">
+
+<div class="flex flex-col items-start justify-start h-[100%] w-full gap-[10px]" use:jsonAction={{ data: user, title: "User Data" }}>
     <TextField label="Full Name" value={`${user.firstName} ${user.lastName}`} onClick={showEditUserPopup} readonly={User.isSystemAdmin(user)} />
     <TextField label="Email" value={user.email} onClick={showEditUserPopup} readonly={User.isSystemAdmin(user)} />
     <RoleList label="Roles" roles={roles.filter(r => user.roles.includes(r._id))} onAdd={() => {}} onRemove={() => {}} readOnly isSystemAdmin={User.isSystemAdmin(user)} />

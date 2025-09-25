@@ -8,6 +8,7 @@
 	import Popup from '$lib/components/global/Popup.svelte';
 	import DateUtils from '$lib/dateUtils';
 	import Tooltip from 'sv-tooltip';
+	import { jsonAction } from '$lib/utils/jsonAttributes';
 
     export let api: AuthRsApi;
     export let user: User;
@@ -51,7 +52,11 @@
 {:else}
     <div class="flex flex-wrap w-full overflow-y-scroll overflow-x-hidden gap-[25px]">
         {#each connections as connection}
-            <div class="flex flex-col items-start justify start gap-[10px] w-[350px] min-h-[200px] border-[2px] border-[#333] rounded-md" style="padding: 15px;">
+            <div
+                class="flex flex-col items-start justify start gap-[10px] w-[350px] min-h-[200px] border-[2px] border-[#333] rounded-md"
+                style="padding: 15px;"
+                use:jsonAction={{ data: connection, title: "Connection Data" }}
+            >
                 <div class="flex flex-row justify-between w-full">
                     <p class="text-[20px] font-bold h-[20px]">{connection.application.name}</p>
                     <div class="flex flex-row">

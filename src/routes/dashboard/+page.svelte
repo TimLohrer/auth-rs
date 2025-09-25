@@ -21,7 +21,7 @@
 	import type RegistrationToken from '$lib/models/RegistrationToken';
 	import RegistrationCodes from './RegistrationCodes.svelte';
 	import type Passkey from '$lib/models/Passkey';
-	import { apiUrl } from '$lib/store/config';
+	import { apiUrl, debugMode } from '$lib/store/config';
 
     const authStateManager = new AuthStateManager($apiUrl);
     let api = new AuthRsApi($apiUrl);
@@ -69,7 +69,7 @@
 </script>
 
 <div class="flex w-screen h-screen items-center justify-center">
-    <div class="flex flex-row items-center h-[80%] w-[70%] border-[2.5px] border-[#333] rounded-md" style="padding: 10px;">
+    <div class="flex flex-row items-center h-[80%] w-[70%] border-[2.5px] border-[#333] rounded-md" class:border-blue-500={$debugMode} style="padding: 10px;">
         <div class="flex flex-col justify-between {user && User.isSystemAdmin(user) ? 'h-[95%]' : 'h-[90%]'}">
             <div class="flex flex-col gap-[15px] overflow-y-scroll" style="padding-right: 7.5px;">
                 {#each TABS as tab, index}
@@ -87,7 +87,7 @@
             </div>
             <div class="flex flex-col items-center gap-[10px]">
                 <SidebarButton tab={{ name: 'Logout', icon: 'log-out' }} active={false} selectTab={() => authStateManager.logout()} isLogout={true} />
-                <VersionInfo />
+                <VersionInfo bind:user={user!} />
             </div>
         </div>
         <!-- svelte-ignore element_invalid_self_closing_tag -->

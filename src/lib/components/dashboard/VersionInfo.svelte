@@ -2,6 +2,17 @@
 	import { onMount } from 'svelte';
 	import { version, latestVersion, updateAvailable, updateCheckLoading, updateCheckError, checkForUpdates } from '$lib/store/version';
 	import { ExternalLink, Download } from 'lucide-svelte';
+	import User from '$lib/models/User';
+	import { debugMode } from '$lib/store/config';
+	import { get } from 'svelte/store';
+
+	export let user: User;
+
+	function toggleDebugMode() {
+		if (User.isAdmin(user)) {
+			debugMode.set(!get(debugMode));
+		}
+	}
 
 	// Check for updates when component mounts, but don't retry on errors
 	onMount(() => {
@@ -9,9 +20,11 @@
 	});
 </script>
 
-<div class="flex flex-col items-center gap-1">
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="flex flex-col items-center gap-1 cursor-pointer" on:click={toggleDebugMode}>
 	<div class="text-[11px] text-gray-400 opacity-70">
-		{$version}
+		<p class:text-blue-500={$debugMode}>{$version}</p>
 	</div>
 	
 	{#if $updateCheckLoading}

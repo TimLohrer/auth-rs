@@ -30,6 +30,7 @@
 	},
 	"dependencies": {
 		"@types/node": "^22.14.1",
+		"@zerodevx/svelte-json-view": "^1.0.11",
 		"lucide-svelte": "^0.481.0",
 		"sv-tooltip": "^0.2.5",
 		"svelte-loading-spinners": "^0.3.6"

@@ -7,6 +7,7 @@
 	import type Role from "$lib/models/Role";
 	import type User from "$lib/models/User";
 	import type Passkey from '$lib/models/Passkey';
+	import { jsonAction } from '$lib/utils/jsonAttributes';
 
     export let user: User;
     export let auditLog: AuditLog;
@@ -136,6 +137,7 @@
     class="flex flex-col items-start border-[1px] border-[#333] rounded-md {isAuditLogExpandable(auditLog) ? 'cursor-pointer' : ''}"
     style="padding: 15px;"
     on:click={isAuditLogExpandable(auditLog) ? () => isOpen = !isOpen : () => {}}
+    use:jsonAction={{ data: auditLog, title: "Audit Log Data" }}
 >
     <div class="flex flex-row justify-between w-full">
         <div class="flex flex-row gap-[15px]">
