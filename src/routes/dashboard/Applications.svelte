@@ -182,7 +182,7 @@
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
             <!-- svelte-ignore a11y_click_events_have_key_events -->
             <p
-                class="text-green-600 rounded-md text-[18px] {(newRedirectUri.includes('http') || newRedirectUri.includes(':///')) && newRedirectUri.includes('://') && newRedirectUri.includes('.') ? 'cursor-pointer' : 'cursor-default opacity-50'}"
+                class="text-green-600 rounded-md text-[18px] {(newRedirectUri.includes('http') || newRedirectUri.includes(':///')) && newRedirectUri.includes('://') && (newRedirectUri.includes('.') || newRedirectUri.includes('localhost')) ? 'cursor-pointer' : 'cursor-default opacity-50'}"
                 style="margin-top: 25px;"
                 class:enabled={newRedirectUri.includes('http') && newRedirectUri.includes('://') && (newRedirectUri.includes('.') || newRedirectUri.includes('localhost'))}
                 on:click={newRedirectUri.includes('http') && newRedirectUri.includes('://') && (newRedirectUri.includes('.') || newRedirectUri.includes('localhost')) ? () => addRedirectUri(newRedirectUriApplication!) : null}
