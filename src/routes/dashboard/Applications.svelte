@@ -184,8 +184,8 @@
             <p
                 class="text-green-600 rounded-md text-[18px] {(newRedirectUri.includes('http') || newRedirectUri.includes(':///')) && newRedirectUri.includes('://') && newRedirectUri.includes('.') ? 'cursor-pointer' : 'cursor-default opacity-50'}"
                 style="margin-top: 25px;"
-                class:enabled={newRedirectUri.includes('http') && newRedirectUri.includes('://') && newRedirectUri.includes('.')}
-                on:click={newRedirectUri.includes('http') && newRedirectUri.includes('://') && newRedirectUri.includes('.') ? () => addRedirectUri(newRedirectUriApplication!) : null}
+                class:enabled={newRedirectUri.includes('http') && newRedirectUri.includes('://') && (newRedirectUri.includes('.') || newRedirectUri.includes('localhost'))}
+                on:click={newRedirectUri.includes('http') && newRedirectUri.includes('://') && (newRedirectUri.includes('.') || newRedirectUri.includes('localhost')) ? () => addRedirectUri(newRedirectUriApplication!) : null}
             >Save</p>
         </div>
     </Popup>
