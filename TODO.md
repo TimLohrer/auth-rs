@@ -6,9 +6,9 @@
 - [x] Validate redirect URI (not sure if we already do this) -> Update: We did :3
 - [x] Emails are not unique??? -> Fixed
 - [x] Require at lease one oauth scope to authorize
+- [x] Audit Logs for Passkeys
 - [ ] Add openid well_known page
 - [ ] We want dedicated get all routes like for the passkeys
-- [x] Audit Logs for Passkeys
 
 ## Frontend
 
@@ -24,17 +24,17 @@
 - [x] show code users used to join in logs
 - [x] show code full warning
 - [x] add copy join url button to registration codes
-- [ ] "notification" popups in the bottom right corner -> success and error messages
 - [x] passkey name overflow fix
 - [x] display info for system user on oauth screen
 - [x] show invalid oauth scopes
+- [ ] "notification" popups in the bottom right corner -> success and error messages
 
 ## Both
 
 - [ ] ~~Role descriptions~~ Canceled for now.
 - [x] Limit registations (registration codes with limited uses and autoroles?)
 - [x] System admin settings (limited registrations, disable oauth application create for default users)
-- [ ] Pagination
+- [ ] Pagination ‼️
 
 ## ???
 
