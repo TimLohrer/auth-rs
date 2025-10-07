@@ -89,6 +89,16 @@ impl User {
         }
     }
 
+    pub fn hash_password(password: &str, salt: &str) -> UserResult<String> {
+        let salt = SaltString::from_b64(salt).map_err(|_| UserError::PasswordHashingError)?;
+        let argon2 = Argon2::default();
+        let password_hash = argon2
+            .hash_password(password.as_bytes(), &salt)
+            .map_err(|_| UserError::PasswordHashingError)?
+            .to_string();
+        Ok(password_hash)
+    }
+
     pub fn new(
         email: String,
         password: String,
@@ -96,18 +106,12 @@ impl User {
         last_name: String,
     ) -> UserResult<Self> {
         let salt = SaltString::generate(&mut OsRng);
-        let argon2 = Argon2::default();
-        let password_hash = argon2
-            .hash_password(password.as_bytes(), &salt)
-            .map_err(|_| UserError::PasswordHashingError)?
-            .to_string();
-
         Ok(Self {
             id: Uuid::new(),
             email,
             first_name,
             last_name,
-            password_hash,
+            password_hash: Self::hash_password(&password, &salt.to_string())?,
             salt: salt.as_str().to_string(),
             totp_secret: None,
             token: Self::generate_token(),
