@@ -271,7 +271,7 @@ impl OAuthToken {
         };
 
         self.scope = scope;
-        self.expires_in = 30 * 24 * 60 * 60;
+        self.expires_in = 30 * 24 * 60 * 60 * 1000;
         self.created_at = DateTime::now();
 
         match db.replace_one(filter, self.clone(), None).await {
