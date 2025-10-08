@@ -41,7 +41,7 @@ pub struct User {
     pub totp_secret: Option<String>,
     pub token: String,
     pub roles: Vec<Uuid>,
-    pub data: HashMap<String, Value>,
+    pub data_storage: HashMap<String, Value>,
     pub disabled: bool,
     pub created_at: DateTime,
 }
@@ -57,7 +57,7 @@ pub struct UserDTO {
     pub last_name: String,
     pub roles: Vec<Uuid>,
     pub mfa: bool,
-    pub data: Option<HashMap<String, Value>>,
+    pub data_storage: Option<HashMap<String, Value>>,
     pub disabled: bool,
     pub created_at: DateTime,
 }
@@ -91,8 +91,8 @@ impl User {
             last_name: self.last_name.clone(),
             roles: self.roles.clone(),
             mfa: self.totp_secret.is_some(),
-            data: if include_data_storage {
-                Some(self.data.clone())
+            data_storage: if include_data_storage {
+                Some(self.data_storage.clone())
             } else {
                 None
             },
@@ -128,7 +128,7 @@ impl User {
             totp_secret: None,
             token: Self::generate_token(),
             roles: Vec::from([*DEFAULT_ROLE_ID]),
-            data: HashMap::new(),
+            data_storage: HashMap::new(),
             disabled: false,
             created_at: DateTime::now(),
         })
@@ -162,7 +162,7 @@ impl User {
                 .iter()
                 .map(|role| Uuid::parse_str(role).unwrap())
                 .collect(),
-            data: HashMap::new(),
+            data_storage: HashMap::new(),
             disabled: false,
             created_at: DateTime::now(),
         })
