@@ -9,6 +9,7 @@ pub enum OAuthScope {
     Roles(ScopeActions),
     AuditLogs(ScopeActions),
     Users(ScopeActions),
+    UserDataStorage(ScopeActions),
     OAuthApplications(ScopeActions),
     Connections(ScopeActions),
 }
@@ -89,6 +90,7 @@ impl Display for OAuthScope {
             OAuthScope::Roles(actions) => write!(f, "roles:{}", actions),
             OAuthScope::AuditLogs(actions) => write!(f, "audit_logs:{}", actions),
             OAuthScope::Users(actions) => write!(f, "user:{}", actions),
+            OAuthScope::UserDataStorage(actions) => write!(f, "user_data_storage:{}", actions),
             OAuthScope::OAuthApplications(actions) => write!(f, "oauth_applications:{}", actions),
             OAuthScope::Connections(actions) => write!(f, "connections:{}", actions),
         }
@@ -108,6 +110,7 @@ impl TryFrom<String> for OAuthScope {
             "roles" => Ok(OAuthScope::Roles(action)),
             "audit_logs" => Ok(OAuthScope::AuditLogs(action)),
             "user" => Ok(OAuthScope::Users(action)),
+            "user_data_storage" => Ok(OAuthScope::UserDataStorage(action)),
             "oauth_applications" => Ok(OAuthScope::OAuthApplications(action)),
             "connections" => Ok(OAuthScope::Connections(action)),
             _ => Err("Unknown scope type"),
@@ -124,6 +127,7 @@ impl Serialize for OAuthScope {
             OAuthScope::Roles(action) => format!("roles:{}", action),
             OAuthScope::AuditLogs(action) => format!("audit_logs:{}", action),
             OAuthScope::Users(action) => format!("user:{}", action),
+            OAuthScope::UserDataStorage(action) => format!("user_data_storage:{}", action),
             OAuthScope::OAuthApplications(action) => format!("oauth_applications:{}", action),
             OAuthScope::Connections(action) => format!("connections:{}", action),
         };
@@ -155,6 +159,7 @@ impl<'de> Deserialize<'de> for OAuthScope {
             "roles" => Ok(OAuthScope::Roles(actions)),
             "audit_logs" => Ok(OAuthScope::AuditLogs(actions)),
             "user" => Ok(OAuthScope::Users(actions)),
+            "user_data_storage" => Ok(OAuthScope::UserDataStorage(actions)),
             "oauth_applications" => Ok(OAuthScope::OAuthApplications(actions)),
             "connections" => Ok(OAuthScope::Connections(actions)),
             _ => Err(Error::custom("Invalid scope")),

@@ -20,7 +20,7 @@ pub async fn get_all_users(
         return json_response(HttpResponse::forbidden("Forbidden"));
     }
 
-    if !req_entity.user.unwrap().is_admin() {
+    if !req_entity.clone().user.unwrap().is_admin() {
         return json_response(HttpResponse::forbidden("Missing permissions!"));
     }
 
@@ -28,7 +28,7 @@ pub async fn get_all_users(
     match User::get_all(&db).await {
         Ok(users) => json_response(HttpResponse::success(
             "Successfully retrieved all users",
-            users.into_iter().map(|user| user.to_dto()).collect(),
+            users.into_iter().map(|user| user.to_dto(User::can_read_data_storage(req_entity.clone(), &user.id))).collect(),
         )),
         Err(err) => json_response(err.into()),
     }

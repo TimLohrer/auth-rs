@@ -9,7 +9,10 @@
         Crown,
         ClipboardList,
         CodeXml,
-        Unlink
+        Unlink,
+		FolderOpen,
+		FolderPen,
+		FolderCog
     } from "lucide-svelte";
 
     export let scopes: string[];
@@ -19,9 +22,15 @@
 </script>
 
 {#each scopes as scope}
-    <div class="flex flex-row items-start w-full gap-[{gap}]">
+    <div class="flex flex-row items-center w-full gap-[{gap}]">
         {#if SCOPES[scope].icon == 'user'}
             <User size={iconSize} />
+        {:else if SCOPES[scope].icon == 'folder-open'}
+            <FolderOpen size={iconSize} />
+        {:else if SCOPES[scope].icon == 'folder-pen'}
+            <FolderPen size={iconSize} />
+        {:else if SCOPES[scope].icon == 'folder-cog'}
+            <FolderCog size={iconSize} />
         {:else if SCOPES[scope].icon == 'user-pen'}
             <UserPen size={iconSize} />
         {:else if SCOPES[scope].icon == 'user-minus'}

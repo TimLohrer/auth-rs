@@ -47,7 +47,7 @@ pub async fn update_user(
     let result = update_user_internal(db, req_entity, id, data.into_inner()).await;
 
     match result {
-        Ok(user) => json_response(HttpResponse::success("User updated", user.to_dto())),
+        Ok(user) => json_response(HttpResponse::success("User updated", user.to_dto(true))),
         Err(err) => json_response(err.into()),
     }
 }

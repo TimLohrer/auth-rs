@@ -67,7 +67,7 @@ async fn process_login(
     }
 
     Ok(LoginResponse {
-        user: Some(user.to_dto()),
+        user: Some(user.to_dto(true)),
         token: Some(user.token),
         mfa_required: false,
         mfa_flow_id: None,

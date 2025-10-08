@@ -232,7 +232,7 @@ async fn process_authenticate_finish(
 
     // Return success with user information and token
     Ok(PasskeyAuthenticateFinishResponse {
-        user: user.to_dto(),
+        user: user.to_dto(false),
         token: user.token,
     })
 }

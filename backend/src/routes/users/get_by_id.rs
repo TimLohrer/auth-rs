@@ -49,7 +49,7 @@ pub async fn get_user_by_id(
     }
 
     match User::get_by_id(uuid, &db).await {
-        Ok(user) => json_response(HttpResponse::success("Found user by id", user.to_dto())),
+        Ok(user) => json_response(HttpResponse::success("Found user by id", user.to_dto(User::can_read_data_storage(req_entity, &uuid)))),
         Err(err) => json_response(err.into()),
     }
 }

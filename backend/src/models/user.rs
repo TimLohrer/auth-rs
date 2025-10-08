@@ -1,7 +1,11 @@
+use std::collections::HashMap;
+
 use super::user_error::{UserError, UserResult};
 use super::{
     http_response::HttpResponse, oauth_application::OAuthApplication, oauth_token::OAuthToken,
 };
+use crate::auth::AuthEntity;
+use crate::models::oauth_scope::{OAuthScope, ScopeActions};
 use crate::{
     db::{get_main_db, AuthRsDatabase},
     ADMIN_ROLE_ID, DEFAULT_ROLE_ID, SYSTEM_USER_ID,
@@ -21,6 +25,7 @@ use rocket_db_pools::{
     mongodb::{Collection, Database},
     Connection,
 };
+use serde_json::Value;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
@@ -36,6 +41,7 @@ pub struct User {
     pub totp_secret: Option<String>,
     pub token: String,
     pub roles: Vec<Uuid>,
+    pub data: HashMap<String, Value>,
     pub disabled: bool,
     pub created_at: DateTime,
 }
@@ -51,6 +57,7 @@ pub struct UserDTO {
     pub last_name: String,
     pub roles: Vec<Uuid>,
     pub mfa: bool,
+    pub data: Option<HashMap<String, Value>>,
     pub disabled: bool,
     pub created_at: DateTime,
 }
@@ -76,7 +83,7 @@ impl User {
             .map_err(|_| UserError::PasswordHashingError)
     }
 
-    pub fn to_dto(&self) -> UserDTO {
+    pub fn to_dto(&self, include_data_storage: bool) -> UserDTO {
         UserDTO {
             id: self.id,
             email: self.email.clone(),
@@ -84,6 +91,11 @@ impl User {
             last_name: self.last_name.clone(),
             roles: self.roles.clone(),
             mfa: self.totp_secret.is_some(),
+            data: if include_data_storage {
+                Some(self.data.clone())
+            } else {
+                None
+            },
             disabled: self.disabled,
             created_at: self.created_at,
         }
@@ -116,6 +128,7 @@ impl User {
             totp_secret: None,
             token: Self::generate_token(),
             roles: Vec::from([*DEFAULT_ROLE_ID]),
+            data: HashMap::new(),
             disabled: false,
             created_at: DateTime::now(),
         })
@@ -149,6 +162,7 @@ impl User {
                 .iter()
                 .map(|role| Uuid::parse_str(role).unwrap())
                 .collect(),
+            data: HashMap::new(),
             disabled: false,
             created_at: DateTime::now(),
         })
@@ -162,6 +176,20 @@ impl User {
     #[allow(unused)]
     pub fn is_system_admin(&self) -> bool {
         self.id == *SYSTEM_USER_ID
+    }
+
+    #[allow(unused)]
+    pub fn can_read_data_storage(req_entity: AuthEntity, user_id: &Uuid) -> bool {
+        (req_entity.is_user() && &req_entity.user.clone().unwrap().id == user_id || req_entity.user.unwrap().is_admin()) || (req_entity
+            .token
+            .as_ref()
+            .unwrap()
+            .check_scope(OAuthScope::UserDataStorage(ScopeActions::Read))
+            || req_entity
+                .token
+                .as_ref()
+                .unwrap()
+                .check_scope(OAuthScope::UserDataStorage(ScopeActions::All)))
     }
 
     #[allow(unused)]
