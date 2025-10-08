@@ -81,7 +81,7 @@ jobs:
         git fetch --tags
         VERSION=${{ steps.extract_tag.outputs.VERSION }}
         # Find the previous tag (by creation date). If none exists, use initial commit range.
-        PREV_TAG=$(git tag --sort=-creatordate | sed -n '2p' || true)
+        PREV_TAG=$(git tag --sort=-version:refname | sed -n '2p' || true)
 
         if [ -n "$PREV_TAG" ]; then
           echo "Generating changelog from $PREV_TAG to $VERSION"
