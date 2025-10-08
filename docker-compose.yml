@@ -25,7 +25,7 @@ services:
       mongodb:
         condition: service_healthy
     environment:
-      - ROCKET_DATABASES={auth-rs-db={url="mongodb://mongodb:27017"}} # adjust the url="" part if needed
+      - DATABASE_URL=mongodb://mongodb:27017 # adjust if needed
       - SYSTEM_EMAIL=admin@example.com
       - SYSTEM_PASSWORD= # Create a strong system user password here
       - PUBLIC_BASE_URL=https://auth.example.com
