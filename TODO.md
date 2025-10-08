@@ -9,7 +9,7 @@
 - [x] Audit Logs for Passkeys
 - [ ] Add openid well_known page (OCID support)
 - [ ] We want dedicated get all routes like for the passkeys
-- [x] less envs in backend -> impler setup
+- [x] less envs in backend -> simpler setup
 - [x] cleaner db connection env
 - [x] update system user data on restart if changed
 
