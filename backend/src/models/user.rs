@@ -179,17 +179,63 @@ impl User {
     }
 
     #[allow(unused)]
-    pub fn can_read_data_storage(req_entity: AuthEntity, user_id: &Uuid) -> bool {
-        (req_entity.is_user() && &req_entity.user.clone().unwrap().id == user_id || req_entity.user.unwrap().is_admin()) || (req_entity
-            .token
-            .as_ref()
-            .unwrap()
-            .check_scope(OAuthScope::UserDataStorage(ScopeActions::Read))
+    pub fn can_read_full_data_storage(req_entity: AuthEntity, user_id: &Uuid) -> bool {
+        (req_entity.is_user() && &req_entity.user.clone().unwrap().id == user_id
+            || req_entity.user.unwrap().is_admin())
             || req_entity
                 .token
                 .as_ref()
                 .unwrap()
-                .check_scope(OAuthScope::UserDataStorage(ScopeActions::All)))
+                .check_scope(OAuthScope::UserDataStorage(ScopeActions::All))
+    }
+
+    #[allow(unused)]
+    pub fn can_read_data_storage_key(req_entity: AuthEntity, user_id: &Uuid) -> bool {
+        (req_entity.is_user() && &req_entity.user.clone().unwrap().id == user_id
+            || req_entity.user.unwrap().is_admin())
+            || (req_entity
+                .token
+                .as_ref()
+                .unwrap()
+                .check_scope(OAuthScope::UserDataStorage(ScopeActions::Read))
+                || req_entity
+                    .token
+                    .as_ref()
+                    .unwrap()
+                    .check_scope(OAuthScope::UserDataStorage(ScopeActions::All)))
+    }
+
+
+    #[allow(unused)]
+    pub fn can_update_data_storage_key(req_entity: AuthEntity, user_id: &Uuid) -> bool {
+        (req_entity.is_user() && &req_entity.user.clone().unwrap().id == user_id
+            || req_entity.user.unwrap().is_admin())
+            || (req_entity
+                .token
+                .as_ref()
+                .unwrap()
+                .check_scope(OAuthScope::UserDataStorage(ScopeActions::Update))
+                || req_entity
+                    .token
+                    .as_ref()
+                    .unwrap()
+                    .check_scope(OAuthScope::UserDataStorage(ScopeActions::All)))
+    }
+
+    #[allow(unused)]
+    pub fn can_delete_data_storage_key(req_entity: AuthEntity, user_id: &Uuid) -> bool {
+        (req_entity.is_user() && &req_entity.user.clone().unwrap().id == user_id
+            || req_entity.user.unwrap().is_admin())
+            || (req_entity
+                .token
+                .as_ref()
+                .unwrap()
+                .check_scope(OAuthScope::UserDataStorage(ScopeActions::Delete))
+                || req_entity
+                    .token
+                    .as_ref()
+                    .unwrap()
+                    .check_scope(OAuthScope::UserDataStorage(ScopeActions::All)))
     }
 
     #[allow(unused)]
@@ -352,6 +398,25 @@ impl User {
                 data: None,
             }),
         }
+    }
+
+    #[allow(unused)]
+    pub fn get_data_storage_by_key(&self, key: &str) -> Option<Value> {
+        self.data_storage.get(key).cloned()
+    }
+
+    #[allow(unused)]
+    pub async fn update_data_storage_key(&mut self, connection: &Connection<AuthRsDatabase>, key: &str, value: Value) -> Result<(), HttpResponse<()>> {
+        self.data_storage.insert(key.to_string(), value);
+        self.update(connection).await;
+        Ok(())
+    }
+
+    #[allow(unused)]
+    pub async fn delete_data_storage_key(&mut self, connection: &Connection<AuthRsDatabase>, key: &str) -> Result<(), HttpResponse<()>> {
+        self.data_storage.remove(key);
+        self.update(connection).await;
+        Ok(())
     }
 
     #[allow(unused)]
