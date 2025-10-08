@@ -7,8 +7,11 @@
 - [x] Emails are not unique??? -> Fixed
 - [x] Require at lease one oauth scope to authorize
 - [x] Audit Logs for Passkeys
-- [ ] Add openid well_known page
+- [ ] Add openid well_known page (OCID support)
 - [ ] We want dedicated get all routes like for the passkeys
+- [ ] weniger envs im backend. einfach einmal url angeben und daraus die ganzen totp issuer etc raus nehmen (einfacheres setup)
+- [ ] cleaneres db env im backend, das kann nicht sein, dass man das so dumm angeben muss???
+- [x] update system user data on restart if changed
 
 ## Frontend
 
@@ -35,7 +38,8 @@
 - [x] Limit registations (registration codes with limited uses and autoroles?)
 - [x] System admin settings (limited registrations, disable oauth application create for default users)
 - [ ] Pagination ‼️
+- [ ] Allow generic user data storage
 
 ## ???
 
-- [x] OAuth Connection expiery date is not created or calculated correctly (look further into this)
+- [ ] OAuth Connection expiery date is not created or calculated correctly (look further into this)
