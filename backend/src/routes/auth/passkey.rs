@@ -64,11 +64,12 @@ lazy_static! {
             },
             Err(_) => "localhost".to_string(),
         };
+        let rp_id_parts: Vec<&str> = rp_id.split('.').collect();
         let rp_name = format!(
             "auth-rs-{}",
-            rp_id.split('.')
-                .nth(rp_id.split('.').count() - 2)
-                .unwrap_or("localhost")
+            rp_id_parts
+                .get(rp_id_parts.len().saturating_sub(2))
+                .unwrap_or(&"localhost")
         );
 
         let rp_origin = Url::parse(&rp_origin_str)
