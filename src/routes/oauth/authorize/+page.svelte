@@ -11,9 +11,7 @@
         Clock,
         Lock,
         CircleX,
-
 		Info
-
     } from "lucide-svelte";
 	import { INVALID_SCOPES, SCOPES } from "$lib/models/OAuthScopes";
 	import User from "$lib/models/User";
@@ -73,18 +71,18 @@
 
         if (!clientId || !state || !scope || !redirect) { 
             console.error('Missing parameters!');
-            // window.location.href = redirect ?? '/';
-            // return;
+            window.location.href = redirect ?? '/';
+            return;
         }
         
-        // const pageData = await new AuthStateManager($apiUrl).handlePageLoad([`redirect_uri=${encodeURIComponent(currentPath)}`]);
-        // api = pageData?.[0] ?? null;
-        // user = pageData?.[1] ?? null;
+        const pageData = await new AuthStateManager($apiUrl).handlePageLoad([`redirect_uri=${encodeURIComponent(currentPath)}`]);
+        api = pageData?.[0] ?? null;
+        user = pageData?.[1] ?? null;
 
-        // if (!api || !user) {
-        //     console.error('Failed to load page data!');
-        //     return;
-        // }
+        if (!api || !user) {
+            console.error('Failed to load page data!');
+            return;
+        }
 
         let scopes = scope!.split(',').map(s => s.toLowerCase());
         scopes = scopes.filter((scope) => !INVALID_SCOPES.includes(scope));
@@ -102,16 +100,15 @@
             activeSince: ''
         };
 
-        // api.getOAuthApplication(clientId)
-        //     .then((app) => {
-        //         oAuthApplication = app;
-        //         oAuthData.activeSince = `${DateUtils.getDateString(OAuthApplication.getCreatedAt(app))}`;
-        //     })
-        //     .catch((err) => {
-        //         console.error('Failed to load OAuth application data!', err);
-        //         window.location.href = redirect;
-        //     });
-
+        api.getOAuthApplication(clientId)
+            .then((app) => {
+                oAuthApplication = app;
+                oAuthData.activeSince = `${DateUtils.getDateString(OAuthApplication.getCreatedAt(app))}`;
+            })
+            .catch((err) => {
+                console.error('Failed to load OAuth application data!', err);
+                window.location.href = redirect;
+            });
     });
 </script>
 
@@ -149,11 +146,11 @@
                     <p class="opacity-50" style="letter-spacing: 3.5px;">....</p>
                     <UserIcon class="size-[80px]" />
                 </div>
-                <!-- <h1 class="font-extrabold text-2xl" style="margin-bottom: 5px;">{(oAuthApplication?.name?.length ?? 0) > 24 ? oAuthApplication?.name.substring(0, 25) + '...' : oAuthApplication?.name}</h1> -->
+                <h1 class="font-extrabold text-2xl" style="margin-bottom: 5px;">{(oAuthApplication?.name?.length ?? 0) > 24 ? oAuthApplication?.name.substring(0, 25) + '...' : oAuthApplication?.name}</h1>
                 <h2 class="opacity-50 text-[14px]">wants to access your Account.</h2>
                 <div class="flex flex-row gap-[10px] text-[12px]">
                     <p class="opacity-50">Signed in as</p>
-                    <!-- <p class="opacity-85">{user?.firstName} {user?.lastName}</p> -->
+                    <p class="opacity-85">{user?.firstName} {user?.lastName}</p>
                     <a class="text-blue-400" style="margin-left: 7.5px;" href="/logout?redirect_uri={encodeURIComponent(currentPath ?? '/')}">Not you?</a>
                 </div>
             </div>
