@@ -64,12 +64,20 @@ lazy_static! {
             },
             Err(_) => "localhost".to_string(),
         };
-        let rp_id_parts: Vec<&str> = rp_id.split('.').collect();
-        let rp_name = format!(
-            "auth-rs-{}",
-            rp_id_parts
-                .get(rp_id_parts.len().saturating_sub(2))
-                .unwrap_or(&"localhost")
+        let rp_name = {
+            let parts: Vec<&str> = rp_id.split('.').collect();
+            let name_part = if parts.len() >= 3 {
+                // Use second-to-last part for domains with 3+ components
+                parts[parts.len() - 2]
+            } else if parts.len() == 2 {
+                // Use first part for domains with 2 components
+                parts[0]
+            } else {
+                // Use the only part (e.g., "localhost")
+                parts[0]
+            };
+            format!("auth-rs-{}", name_part)
+        };
         );
 
         let rp_origin = Url::parse(&rp_origin_str)
