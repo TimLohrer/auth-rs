@@ -84,7 +84,7 @@
             return;
         }
 
-        let scopes = scope!.split(',').map(s => s.toLowerCase());
+        let scopes = scope.split(',').map(s => s.toLowerCase());
         scopes = scopes.filter((scope) => !INVALID_SCOPES.includes(scope));
 
         const invalidScopes = scopes.filter(scope => !Object.keys(SCOPES).includes(scope));
@@ -96,7 +96,7 @@
             scopes,
             invalidScopes,
             redirect,
-            redirectBase: new URL(decodeURIComponent(redirect!)).origin,
+            redirectBase: new URL(decodeURIComponent(redirect)).origin,
             activeSince: ''
         };
 
