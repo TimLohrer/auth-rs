@@ -78,8 +78,6 @@ lazy_static! {
             };
             format!("auth-rs-{}", name_part)
         };
-        );
-
         let rp_origin = Url::parse(&rp_origin_str)
             .expect("Invalid PUBLIC_BASE_URL -> Cannot parse URL for passkey origin");
 
