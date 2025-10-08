@@ -6,3 +6,5 @@ pub mod me;
 pub mod mfa;
 pub mod passkeys;
 pub mod update;
+pub mod get_storage;
+pub mod update_storage;

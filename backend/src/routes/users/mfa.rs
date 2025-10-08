@@ -64,7 +64,7 @@ async fn process_enable_totp_mfa(
     Ok((
         "TOTP MFA enable flow started.".to_string(),
         LoginResponse {
-            user: Some(user.to_dto()),
+            user: Some(user.to_dto(false)),
             token: Some(flow.totp.unwrap().get_qr_base64().unwrap()),
             mfa_required: true,
             mfa_flow_id: Some(flow.flow_id),
@@ -162,7 +162,7 @@ pub async fn disable_totp_mfa(
     let mfa_data = data.into_inner();
 
     match process_disable_totp_mfa(&db, req_entity, id, mfa_data).await {
-        Ok(user) => Json(HttpResponse::success("TOTP MFA disabled.", user.to_dto())),
+        Ok(user) => Json(HttpResponse::success("TOTP MFA disabled.", user.to_dto(false))),
         Err(err) => Json(err.into()),
     }
 }

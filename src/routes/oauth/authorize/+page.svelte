@@ -10,7 +10,8 @@
         SquareArrowOutUpRight,
         Clock,
         Lock,
-        CircleX
+        CircleX,
+		Info
     } from "lucide-svelte";
 	import { INVALID_SCOPES, SCOPES } from "$lib/models/OAuthScopes";
 	import User from "$lib/models/User";
@@ -92,7 +93,7 @@
         oAuthData = {
             clientId,
             state,
-            scopes: scopes,
+            scopes,
             invalidScopes,
             redirect,
             redirectBase: new URL(decodeURIComponent(redirect)).origin,
@@ -108,7 +109,6 @@
                 console.error('Failed to load OAuth application data!', err);
                 window.location.href = redirect;
             });
-
     });
 </script>
 
@@ -175,6 +175,12 @@
                     <Lock class="w-[30px] h-[30px] opacity-50" />
                     <p class="text-[11px] opacity-70">This application will never be able to access anything outside of the permissions mentioned above.</p>
                 </div>
+                {#if oAuthData.scopes.some(s => s.includes('user_data_storage:'))}
+                    <div class="flex flex-row items-center gap-[12.5px]">
+                        <Info class="w-[55px] h-[55px] opacity-50" />
+                        <p class="text-[11px] opacity-70">The application will NOT be able to read and write data about your profile. The "additional data storage" permission is used to read and write generic data that is linked to your account.</p>
+                    </div>
+                {/if}
             </div>
             <hr class="h-[2px] w-full bg-white opacity-25 rounded-[2px]" style="margin: 10px;" />
             <!-- svelte-ignore a11y_click_events_have_key_events -->

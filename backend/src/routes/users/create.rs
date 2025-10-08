@@ -45,7 +45,7 @@ pub async fn create_user(
         Ok(user) => json_response(HttpResponse {
             status: 201,
             message: "User created".to_string(),
-            data: Some(user.to_dto()),
+            data: Some(user.to_dto(true)),
         }),
         Err(err) => json_response(err.into()),
     }

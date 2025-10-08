@@ -35,8 +35,10 @@ pub async fn get_current_user(
         return json_response(HttpResponse::forbidden("Forbidden"));
     }
 
+    
+
     match User::get_by_id(req_entity.user_id, &db).await {
-        Ok(user) => json_response(HttpResponse::success("Found user by id", user.to_dto())),
+        Ok(user) => json_response(HttpResponse::success("Found user by id", user.to_dto(User::can_read_data_storage_key(req_entity.clone(), &req_entity.user_id)))),
         Err(err) => json_response(err.into()),
     }
 }
@@ -63,7 +65,7 @@ pub async fn get_current_user_plain(
     }
 
     match User::get_by_id(req_entity.user_id, &db).await {
-        Ok(user) => (Status::Ok, Some(Json(user.to_dto()))),
+        Ok(user) => (Status::Ok, Some(Json(user.to_dto(User::can_read_data_storage_key(req_entity.clone(), &req_entity.user_id))))),
         Err(err) => (Status::NotFound, None),
     }
 }

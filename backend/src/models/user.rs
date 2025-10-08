@@ -1,7 +1,11 @@
+use std::collections::HashMap;
+
 use super::user_error::{UserError, UserResult};
 use super::{
     http_response::HttpResponse, oauth_application::OAuthApplication, oauth_token::OAuthToken,
 };
+use crate::auth::AuthEntity;
+use crate::models::oauth_scope::{OAuthScope, ScopeActions};
 use crate::{
     db::{get_main_db, AuthRsDatabase},
     ADMIN_ROLE_ID, DEFAULT_ROLE_ID, SYSTEM_USER_ID,
@@ -21,6 +25,7 @@ use rocket_db_pools::{
     mongodb::{Collection, Database},
     Connection,
 };
+use serde_json::Value;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
@@ -36,6 +41,7 @@ pub struct User {
     pub totp_secret: Option<String>,
     pub token: String,
     pub roles: Vec<Uuid>,
+    pub data_storage: HashMap<String, Value>,
     pub disabled: bool,
     pub created_at: DateTime,
 }
@@ -51,6 +57,7 @@ pub struct UserDTO {
     pub last_name: String,
     pub roles: Vec<Uuid>,
     pub mfa: bool,
+    pub data_storage: Option<HashMap<String, Value>>,
     pub disabled: bool,
     pub created_at: DateTime,
 }
@@ -76,7 +83,7 @@ impl User {
             .map_err(|_| UserError::PasswordHashingError)
     }
 
-    pub fn to_dto(&self) -> UserDTO {
+    pub fn to_dto(&self, include_data_storage: bool) -> UserDTO {
         UserDTO {
             id: self.id,
             email: self.email.clone(),
@@ -84,6 +91,11 @@ impl User {
             last_name: self.last_name.clone(),
             roles: self.roles.clone(),
             mfa: self.totp_secret.is_some(),
+            data_storage: if include_data_storage {
+                Some(self.data_storage.clone())
+            } else {
+                None
+            },
             disabled: self.disabled,
             created_at: self.created_at,
         }
@@ -116,6 +128,7 @@ impl User {
             totp_secret: None,
             token: Self::generate_token(),
             roles: Vec::from([*DEFAULT_ROLE_ID]),
+            data_storage: HashMap::new(),
             disabled: false,
             created_at: DateTime::now(),
         })
@@ -149,6 +162,7 @@ impl User {
                 .iter()
                 .map(|role| Uuid::parse_str(role).unwrap())
                 .collect(),
+            data_storage: HashMap::new(),
             disabled: false,
             created_at: DateTime::now(),
         })
@@ -162,6 +176,66 @@ impl User {
     #[allow(unused)]
     pub fn is_system_admin(&self) -> bool {
         self.id == *SYSTEM_USER_ID
+    }
+
+    #[allow(unused)]
+    pub fn can_read_full_data_storage(req_entity: AuthEntity, user_id: &Uuid) -> bool {
+        (req_entity.is_user() && (&req_entity.user.clone().unwrap().id == user_id
+            || req_entity.user.as_ref().map_or(false, |u| u.is_admin())))
+            || req_entity
+                .token
+                .as_ref()
+                .unwrap()
+                .check_scope(OAuthScope::UserDataStorage(ScopeActions::All))
+    }
+
+    #[allow(unused)]
+    pub fn can_read_data_storage_key(req_entity: AuthEntity, user_id: &Uuid) -> bool {
+        (req_entity.is_user() && (&req_entity.user.clone().unwrap().id == user_id
+            || req_entity.user.as_ref().map_or(false, |u| u.is_admin())))
+            || (req_entity
+                .token
+                .as_ref()
+                .unwrap()
+                .check_scope(OAuthScope::UserDataStorage(ScopeActions::Read))
+                || req_entity
+                    .token
+                    .as_ref()
+                    .unwrap()
+                    .check_scope(OAuthScope::UserDataStorage(ScopeActions::All)))
+    }
+
+
+    #[allow(unused)]
+    pub fn can_update_data_storage_key(req_entity: AuthEntity, user_id: &Uuid) -> bool {
+        (req_entity.is_user() && (&req_entity.user.clone().unwrap().id == user_id
+            || req_entity.user.as_ref().map_or(false, |u| u.is_admin())))
+            || (req_entity
+                .token
+                .as_ref()
+                .unwrap()
+                .check_scope(OAuthScope::UserDataStorage(ScopeActions::Update))
+                || req_entity
+                    .token
+                    .as_ref()
+                    .unwrap()
+                    .check_scope(OAuthScope::UserDataStorage(ScopeActions::All)))
+    }
+
+    #[allow(unused)]
+    pub fn can_delete_data_storage_key(req_entity: AuthEntity, user_id: &Uuid) -> bool {
+        (req_entity.is_user() && (&req_entity.user.clone().unwrap().id == user_id
+            || req_entity.user.as_ref().map_or(false, |u| u.is_admin())))
+            || (req_entity
+                .token
+                .as_ref()
+                .unwrap()
+                .check_scope(OAuthScope::UserDataStorage(ScopeActions::Delete))
+                || req_entity
+                    .token
+                    .as_ref()
+                    .unwrap()
+                    .check_scope(OAuthScope::UserDataStorage(ScopeActions::All)))
     }
 
     #[allow(unused)]
@@ -324,6 +398,25 @@ impl User {
                 data: None,
             }),
         }
+    }
+
+    #[allow(unused)]
+    pub fn get_data_storage_by_key(&self, key: &str) -> Option<Value> {
+        self.data_storage.get(key).cloned()
+    }
+
+    #[allow(unused)]
+    pub async fn update_data_storage_key(&mut self, connection: &Connection<AuthRsDatabase>, key: &str, value: Value) -> Result<(), HttpResponse<()>> {
+        self.data_storage.insert(key.to_string(), value);
+        self.update(connection).await?;
+        Ok(())
+    }
+
+    #[allow(unused)]
+    pub async fn delete_data_storage_key(&mut self, connection: &Connection<AuthRsDatabase>, key: &str) -> Result<(), HttpResponse<()>> {
+        self.data_storage.remove(key);
+        self.update(connection).await?;
+        Ok(())
     }
 
     #[allow(unused)]

@@ -1,6 +1,7 @@
 mod auth;
 mod db;
 mod errors;
+mod migrations;
 mod models;
 mod routes;
 mod utils;
@@ -24,7 +25,7 @@ use rocket_db_pools::{mongodb::Collection, Database};
 use routes::oauth::token::TokenOAuthData;
 use webauthn_rs::prelude::{DiscoverableAuthentication, PasskeyRegistration};
 
-use crate::models::audit_log::{AuditLog, AuditLogAction, AuditLogEntityType};
+use crate::{migrations::DatabaseMigrator, models::audit_log::{AuditLog, AuditLogAction, AuditLogEntityType}};
 
 // oauth codes stored in memory
 lazy_static::lazy_static! {
@@ -51,6 +52,8 @@ lazy_static::lazy_static! {
 async fn initialize_database(db: &AuthRsDatabase) -> AppResult<()> {
     let data_db = db.database(db::get_main_db_name());
     let logs_db = db.database(db::get_logs_db_name());
+    
+    DatabaseMigrator::run_migrations(&data_db).await.map_err(|e| panic!("{}", e)).unwrap();
 
     let settings_collection: Collection<Settings> = data_db.collection(Settings::COLLECTION_NAME);
     let roles_collection: Collection<Role> = data_db.collection(Role::COLLECTION_NAME);
@@ -233,6 +236,10 @@ fn rocket() -> _ {
                 routes::users::mfa::enable_totp_mfa,
                 routes::users::mfa::disable_totp_mfa,
                 routes::users::update::update_user,
+                routes::users::get_storage::get_user_data_storage,
+                routes::users::get_storage::get_user_data_storage_key,
+                routes::users::update_storage::update_user_data_storage_key,
+                routes::users::update_storage::delete_user_data_storage_key,
                 routes::users::delete::delete_user,
                 // Role Routes
                 routes::roles::create::create_role,

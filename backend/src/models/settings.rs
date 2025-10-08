@@ -3,10 +3,11 @@ use crate::{
     SETTINGS_ID,
 };
 use anyhow::Result;
-use mongodb::bson::{doc, Uuid};
+use mongodb::bson::{doc, DateTime, Uuid};
 use rocket::serde::{Deserialize, Serialize};
 use rocket_db_pools::{mongodb::Collection, Connection};
 use thiserror::Error;
+use dotenv::var;
 
 use super::http_response::HttpResponse;
 
@@ -92,6 +93,8 @@ pub type SettingsResult<T> = Result<T, SettingsError>;
 pub struct Settings {
     #[serde(rename = "_id")]
     pub id: Uuid,
+    pub version: String,
+    pub version_history: Vec<(String, DateTime)>,
     pub open_registration: bool,
     pub allow_oauth_apps_for_users: bool,
 }
@@ -100,6 +103,11 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             id: *SETTINGS_ID,
+            version: var("VERSION").unwrap_or_else(|_| "1.0.22".to_string()),
+            version_history: vec![(
+                var("VERSION").unwrap_or_else(|_| "1.0.22".to_string()),
+                DateTime::now(),
+            )],
             open_registration: true,
             allow_oauth_apps_for_users: true,
         }
