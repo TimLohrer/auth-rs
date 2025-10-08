@@ -1,7 +1,9 @@
-use std::{collections::HashMap, env, time::Duration};
+use std::{collections::HashMap, time::Duration};
 
 use anyhow::Result;
+use dotenv::var;
 use mongodb::bson::{doc, Uuid};
+use regex::Regex;
 use rocket::tokio::{spawn, time::sleep};
 use rocket_db_pools::Connection;
 use totp_rs::{Algorithm, Secret, TOTP};
@@ -43,6 +45,21 @@ impl MfaHandler {
         user.totp_secret.is_some()
     }
 
+    pub fn get_issuer_name() -> String {
+        let port_regex = Regex::new(r":[0-9]+").unwrap();
+
+        match var("PUBLIC_BASE_URL") {
+            Ok(url) => port_regex.replace_all(&url, "")
+                .replace("http://", "")
+                .replace("https://", "")
+                .split('/')
+                .next()
+                .unwrap_or("auth-rs")
+                .to_string(),
+            Err(_) => "auth-rs".to_string(),
+        }
+    }
+
     pub async fn start_enable_flow(user: &User) -> Result<Self, String> {
         let flow = Self {
             flow_id: Uuid::new(),
@@ -56,7 +73,7 @@ impl MfaHandler {
                     1,
                     30,
                     Secret::generate_secret().to_bytes().unwrap(),
-                    Some(env::var("TOTP_ISSUER_NAME").unwrap_or_else(|_| "auth-rs".to_string())),
+                    Some(Self::get_issuer_name()),
                     user.email.to_string(),
                 )
                 .unwrap(),
@@ -104,7 +121,7 @@ impl MfaHandler {
                 Secret::Encoded(user.totp_secret.as_ref().unwrap().to_string())
                     .to_bytes()
                     .unwrap(),
-                Some(env::var("TOTP_ISSUER_NAME").unwrap_or_else(|_| "auth-rs".to_string())),
+                Some(Self::get_issuer_name()),
                 user.email.to_string(),
             )
             .unwrap(),
@@ -152,7 +169,7 @@ impl MfaHandler {
             1,
             30,
             Secret::Encoded(secret).to_bytes().unwrap(),
-            Some(env::var("TOTP_ISSUER_NAME").unwrap_or_else(|_| "auth-rs".to_string())),
+            Some(Self::get_issuer_name()),
             user.email.to_string(),
         );
 

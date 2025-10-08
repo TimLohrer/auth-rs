@@ -10,8 +10,10 @@ use crate::{
     },
     utils::response::json_response,
 };
+use dotenv::var;
 use lazy_static::lazy_static;
 use mongodb::bson::Uuid;
+use regex::Regex;
 use rocket::{
     get,
     http::Status,
@@ -19,7 +21,6 @@ use rocket::{
     serde::{json::Json, Deserialize, Serialize},
 };
 use rocket_db_pools::Connection;
-use std::env;
 use std::sync::Arc;
 use url::Url;
 use webauthn_rs::prelude::{DiscoverableKey, PublicKeyCredential, RequestChallengeResponse};
@@ -29,13 +30,59 @@ use webauthn_rs::{Webauthn, WebauthnBuilder};
 lazy_static! {
     static ref WEBAUTHN: Arc<Webauthn> = {
         // Get configuration from environment variables or use defaults
-        let rp_id = env::var("WEBAUTHN_RP_ID").unwrap_or_else(|_| "localhost".to_string());
-        let rp_origin_str = env::var("WEBAUTHN_RP_ORIGIN")
-            .unwrap_or_else(|_| format!("http://{}", rp_id));
-        let rp_name = env::var("WEBAUTHN_RP_NAME").unwrap_or_else(|_| "auth-rs".to_string());
+        let port_regex = Regex::new(r":[0-9]+").unwrap();
 
+        let rp_id = match var("PUBLIC_BASE_URL") {
+            Ok(url) => {
+                let raw_url = port_regex.replace_all(&url, "")
+                    .replace("http://", "")
+                    .replace("https://", "")
+                    .split('/')
+                    .next()
+                    .unwrap_or("localhost")
+                    .to_string();
+
+                if raw_url == "localhost" {
+                    "localhost".to_string()
+                } else {
+                    let parts: Vec<&str> = raw_url.split('.').collect();
+                    if parts.len() > 2 {
+                        parts[1..].join(".")
+                    } else {
+                        raw_url
+                    }
+                }
+            },
+            Err(_) => "localhost".to_string(),
+        };
+        let rp_origin_str = match var("PUBLIC_BASE_URL") {
+            Ok(url) => {
+                let scheme = url.split("://").next().unwrap_or("http");
+                let url_no_port = port_regex.replace_all(&url, "");
+                let host = Url::parse(&url_no_port)
+                    .ok()
+                    .and_then(|parsed| parsed.host_str().map(|h| h.to_string()))
+                    .unwrap_or_else(|| "localhost".to_string());
+                format!("{}://{}", scheme, host)
+            },
+            Err(_) => "localhost".to_string(),
+        };
+        let rp_name = {
+            let parts: Vec<&str> = rp_id.split('.').collect();
+            let name_part = if parts.len() >= 3 {
+                // Use second-to-last part for domains with 3+ components
+                parts[parts.len() - 2]
+            } else if parts.len() == 2 {
+                // Use first part for domains with 2 components
+                parts[0]
+            } else {
+                // Use the only part (e.g., "localhost")
+                parts[0]
+            };
+            format!("auth-rs-{}", name_part)
+        };
         let rp_origin = Url::parse(&rp_origin_str)
-            .expect("Invalid WEBAUTHN_RP_ORIGIN URL");
+            .expect("Invalid PUBLIC_BASE_URL -> Cannot parse URL for passkey origin");
 
         let webauthn = WebauthnBuilder::new(&rp_id, &rp_origin)
             .expect("Invalid Webauthn configuration")

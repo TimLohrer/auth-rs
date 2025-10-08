@@ -185,7 +185,12 @@ fn rocket() -> _ {
         .allowed_headers(AllowedHeaders::all())
         .allow_credentials(true);
 
-    rocket::build()
+    // Load .env and merge DATABASE_URL into Rocket's Figment so
+    // `rocket_db_pools` can read `databases.auth.url` from the environment.
+    let fig = rocket::Config::figment()
+        .merge(("databases.auth.url", std::env::var("DATABASE_URL").expect("DATABASE_URL must be set")));
+
+    rocket::custom(fig)
         .attach(db::AuthRsDatabase::init())
         .attach(cors.to_cors().expect("Failed to create CORS fairing"))
         .attach(AdHoc::try_on_ignite("Default Values", |rocket| async {
