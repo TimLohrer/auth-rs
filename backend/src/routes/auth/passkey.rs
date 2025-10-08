@@ -55,7 +55,7 @@ lazy_static! {
         };
         let rp_origin_str = match var("PUBLIC_BASE_URL") {
             Ok(url) => {
-                let scheme = &url.split("://").next().unwrap_or("http");
+                let scheme = url.split("://").next().unwrap_or("http");
                 let url_no_port = port_regex.replace_all(&url, "");
                 let host = url_no_port.split("://").nth(1).unwrap_or("localhost").split('/').next().unwrap_or("localhost");
                 format!("{}://{}", scheme, host)
