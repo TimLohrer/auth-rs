@@ -49,28 +49,26 @@ function compareVersions(
 	return a.patch - b.patch;
 }
 
-// Check for latest version from GitHub API
+// Check for latest release from GitHub API
 export async function checkForUpdates(): Promise<void> {
 	updateCheckLoading.set(true);
 	updateCheckError.set(null);
-	
+    
 	try {
-		const response = await fetch('https://api.github.com/repos/TimLohrer/auth-rs/tags');
-		
-		if (!response.ok) {
-			throw new Error(`Failed to fetch tags: ${response.status}`);
-		}
-		
-		const tags = await response.json();
-		
-		if (!Array.isArray(tags) || tags.length === 0) {
-			// No tags found
+		const response = await fetch('https://api.github.com/repos/TimLohrer/auth-rs/releases/latest');
+
+		if (response.status === 404) {
+			// No releases exist yet
 			latestVersion.set(null);
 			return;
 		}
-		
-		// Get the first tag (most recent)
-		latestVersion.set(tags[0].name);
+
+		if (!response.ok) {
+			throw new Error(`Failed to fetch latest release: ${response.status}`);
+		}
+
+		const release = await response.json();
+		latestVersion.set(release.tag_name);
 	} catch (error) {
 		console.error('Error checking for updates:', error);
 		updateCheckError.set(error instanceof Error ? error.message : 'Unknown error');

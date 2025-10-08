@@ -11,11 +11,13 @@ jobs:
 
     permissions:
       packages: write  # required for pushing to GHCR
-      contents: read
+      contents: write  # required for creating GitHub Releases
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # fetch all history and tags so we can compute changelog
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -63,6 +65,8 @@ jobs:
         context: ./backend
         file: ./backend/Dockerfile
         push: true
+        build-args: |
+          VERSION=${{ steps.extract_tag.outputs.VERSION }}
         tags: |
           timlohrer/auth-rs-backend:${{ steps.extract_tag.outputs.VERSION }}
           timlohrer/auth-rs-backend:latest
@@ -70,3 +74,35 @@ jobs:
           ghcr.io/timlohrer/auth-rs-backend:latest
         labels: |
           org.opencontainers.image.source=https://github.com/timlohrer/auth-rs
+
+    - name: Generate changelog
+      id: changelog
+      run: |
+        git fetch --tags
+        VERSION=${{ steps.extract_tag.outputs.VERSION }}
+        # Find the previous tag (by creation date). If none exists, use initial commit range.
+        PREV_TAG=$(git tag --sort=-version:refname | sed -n '2p' || true)
+
+        if [ -n "$PREV_TAG" ]; then
+          echo "Generating changelog from $PREV_TAG to $VERSION"
+          CHANGES=$(git log --pretty=format:'- %s (%h)' $PREV_TAG..HEAD)
+        else
+          echo "No previous tag found, listing recent commits"
+          CHANGES=$(git log --pretty=format:'- %s (%h)' -n 50)
+        fi
+
+        # Write multiline output to GITHUB_OUTPUT
+        echo "changes<<EOF" >> $GITHUB_OUTPUT
+        echo "$CHANGES" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.extract_tag.outputs.VERSION }}
+        name: ${{ steps.extract_tag.outputs.VERSION }}
+        body: ${{ steps.changelog.outputs.changes }}
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
