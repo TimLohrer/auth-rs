@@ -91,11 +91,11 @@
         scopes = scopes.filter(scope => scope.split(':')[1] != '*' ? !scopes.includes(`${scope.split(':')[0]}:*`): true);
 
         oAuthData = {
-            clientId: clientId!,
-            state: state!,
-            scopes: scopes,
+            clientId,
+            state,
+            scopes,
             invalidScopes,
-            redirect: decodeURIComponent(redirect!),
+            redirect,
             redirectBase: new URL(decodeURIComponent(redirect!)).origin,
             activeSince: ''
         };
