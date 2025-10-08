@@ -42,4 +42,4 @@
 
 ## ???
 
-- [ ] OAuth Connection expiery date is not created or calculated correctly (look further into this)
+- [x] OAuth Connection expiery date is not created or calculated correctly (look further into this)
