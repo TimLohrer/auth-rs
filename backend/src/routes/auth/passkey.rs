@@ -59,7 +59,10 @@ lazy_static! {
             Ok(url) => {
                 let scheme = url.split("://").next().unwrap_or("http");
                 let url_no_port = port_regex.replace_all(&url, "");
-                let host = url_no_port.split("://").nth(1).unwrap_or("localhost").split('/').next().unwrap_or("localhost");
+                let host = Url::parse(&url_no_port)
+                    .ok()
+                    .and_then(|parsed| parsed.host_str().map(|h| h.to_string()))
+                    .unwrap_or_else(|| "localhost".to_string());
                 format!("{}://{}", scheme, host)
             },
             Err(_) => "localhost".to_string(),
