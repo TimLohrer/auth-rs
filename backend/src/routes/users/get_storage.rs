@@ -32,7 +32,7 @@ pub async fn get_user_data_storage(
         return json_response(HttpResponse::forbidden("Forbidden"));
     }
 
-    match User::get_by_id(req_entity.user_id, &db).await {
+    match User::get_by_id(uuid, &db).await {
         Ok(user) => json_response(HttpResponse::success("Found full user storage by id", user.data_storage)),
         Err(err) => json_response(err.into()),
     }
@@ -55,7 +55,7 @@ pub async fn get_user_data_storage_key(
         return json_response(HttpResponse::forbidden("Forbidden"));
     }
 
-    match User::get_by_id(req_entity.user_id, &db).await {
+    match User::get_by_id(uuid, &db).await {
         Ok(user) => {
             match user.data_storage.get(key) {
                 Some(value) => json_response(HttpResponse::success("Found user storage key", value.clone())),

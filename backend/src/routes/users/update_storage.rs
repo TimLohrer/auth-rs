@@ -43,7 +43,7 @@ pub async fn update_user_data_storage_key(
         return json_response(HttpResponse::forbidden("Forbidden"));
     }
 
-    match User::get_by_id(req_entity.user_id, &db).await {
+    match User::get_by_id(uuid, &db).await {
         Ok(mut user) => {
             match user.update_data_storage_key(&db, key, value.clone()).await {
                 Ok(_) => json_response(HttpResponse::success("Updated user storage key", HashMap::from([(key.to_string(), value)]))),
@@ -71,7 +71,7 @@ pub async fn delete_user_data_storage_key(
         return json_response(HttpResponse::forbidden("Forbidden"));
     }
 
-    match User::get_by_id(req_entity.user_id, &db).await {
+    match User::get_by_id(uuid, &db).await {
         Ok(mut user) => {
             match user.get_data_storage_by_key(key) {
                 Some(value) => {
