@@ -97,10 +97,10 @@ jobs:
         echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Create GitHub Release
-      uses: actions/create-release@v1
+      uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ steps.extract_tag.outputs.VERSION }}
-        release_name: ${{ steps.extract_tag.outputs.VERSION }}
+        name: ${{ steps.extract_tag.outputs.VERSION }}
         body: ${{ steps.changelog.outputs.changes }}
         draft: false
         prerelease: false
