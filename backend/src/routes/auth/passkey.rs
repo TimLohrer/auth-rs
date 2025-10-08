@@ -45,11 +45,14 @@ lazy_static! {
                 if raw_url == "localhost" {
                     "localhost".to_string()
                 } else {
-                    raw_url.split(".")
-                        .skip(1)
-                        .collect::<Vec<&str>>()
-                        .join(".")
-                }
+                    {
+                        let parts: Vec<&str> = raw_url.split('.').collect();
+                        if parts.len() > 2 {
+                            parts[1..].join(".")
+                        } else {
+                            raw_url
+                        }
+                    }
             },
             Err(_) => "localhost".to_string(),
         };
