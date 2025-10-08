@@ -8,9 +8,9 @@ pub struct DatabaseMigrator {}
 
 impl DatabaseMigrator {
     pub async fn run_migrations(db: &Database) -> Result<(), String> {
-        let only_dots_and_digits = regex::Regex::new(r"^[0-9.]+$").unwrap();
+        let invalid_version_chars = regex::Regex::new(r"[^0-9.]").unwrap();
         let current_version_raw = var("VERSION").expect("VERSION must be set in .env file");
-        let current_version = only_dots_and_digits.replace_all(&current_version_raw, "");
+        let current_version = invalid_version_chars.replace_all(&current_version_raw, "").to_string();
         let mut db_version = match db
             .collection::<Settings>("settings")
             .find_one(doc! { "_id": *SETTINGS_ID }, None)
