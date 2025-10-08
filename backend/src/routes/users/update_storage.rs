@@ -39,7 +39,7 @@ pub async fn update_user_data_storage_key(
         Err(err) => return json_response(err.into()),
     };
 
-    if !User::can_read_data_storage_key(req_entity.clone(), &req_entity.user_id) {
+    if !User::can_update_data_storage_key(req_entity.clone(), &req_entity.user_id) {
         return json_response(HttpResponse::forbidden("Forbidden"));
     }
 
