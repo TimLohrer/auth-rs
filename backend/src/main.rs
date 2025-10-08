@@ -55,7 +55,8 @@ async fn initialize_database(db: &AuthRsDatabase) -> AppResult<()> {
     let settings_collection: Collection<Settings> = data_db.collection(Settings::COLLECTION_NAME);
     let roles_collection: Collection<Role> = data_db.collection(Role::COLLECTION_NAME);
     let users_collection: Collection<User> = data_db.collection(User::COLLECTION_NAME);
-    let user_audit_logs_collection: Collection<AuditLog> = logs_db.collection(AuditLog::COLLECTION_NAME_USERS);
+    let user_audit_logs_collection: Collection<AuditLog> =
+        logs_db.collection(AuditLog::COLLECTION_NAME_USERS);
 
     // Initialize settings if they don't exist
     let settings_filter = doc! {
@@ -127,7 +128,9 @@ async fn initialize_database(db: &AuthRsDatabase) -> AppResult<()> {
             .map_err(AppError::RocketMongoError)?
             .ok_or_else(|| AppError::UserNotFound(*SYSTEM_USER_ID))?;
 
-        if system_user.email != system_email || !system_user.verify_password(&system_password).is_ok() {
+        if system_user.email != system_email
+            || !system_user.verify_password(&system_password).is_ok()
+        {
             let update = doc! {
                 "$set": {
                     "email": &system_email,
@@ -140,8 +143,22 @@ async fn initialize_database(db: &AuthRsDatabase) -> AppResult<()> {
                 .await
                 .map_err(AppError::RocketMongoError)?;
 
-            let log = AuditLog::new((*SYSTEM_USER_ID).to_string(), AuditLogEntityType::User, AuditLogAction::Update, "System email or password was changed in environment variables.".to_string(), *SYSTEM_USER_ID, Some(HashMap::from([("email".to_string(), system_user.email.clone()), ("password".to_string(), "********".to_string())])), Some(HashMap::from([("email".to_string(), system_email.clone()), ("password".to_string(), "********".to_string())])));
-                
+            let log = AuditLog::new(
+                (*SYSTEM_USER_ID).to_string(),
+                AuditLogEntityType::User,
+                AuditLogAction::Update,
+                "System email or password was changed in environment variables.".to_string(),
+                *SYSTEM_USER_ID,
+                Some(HashMap::from([
+                    ("email".to_string(), system_user.email.clone()),
+                    ("password".to_string(), "********".to_string()),
+                ])),
+                Some(HashMap::from([
+                    ("email".to_string(), system_email.clone()),
+                    ("password".to_string(), "********".to_string()),
+                ])),
+            );
+
             user_audit_logs_collection
                 .insert_one(log, None)
                 .await
