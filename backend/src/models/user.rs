@@ -181,7 +181,7 @@ impl User {
     #[allow(unused)]
     pub fn can_read_full_data_storage(req_entity: AuthEntity, user_id: &Uuid) -> bool {
         (req_entity.is_user() && (&req_entity.user.clone().unwrap().id == user_id
-            || req_entity.user.unwrap().is_admin()))
+            || req_entity.user.as_ref().map_or(false, |u| u.is_admin())))
             || req_entity
                 .token
                 .as_ref()
@@ -192,7 +192,7 @@ impl User {
     #[allow(unused)]
     pub fn can_read_data_storage_key(req_entity: AuthEntity, user_id: &Uuid) -> bool {
         (req_entity.is_user() && (&req_entity.user.clone().unwrap().id == user_id
-            || req_entity.user.unwrap().is_admin()))
+            || req_entity.user.as_ref().map_or(false, |u| u.is_admin())))
             || (req_entity
                 .token
                 .as_ref()
@@ -208,8 +208,8 @@ impl User {
 
     #[allow(unused)]
     pub fn can_update_data_storage_key(req_entity: AuthEntity, user_id: &Uuid) -> bool {
-        (req_entity.is_user() && &req_entity.user.clone().unwrap().id == user_id
-            || req_entity.user.unwrap().is_admin())
+        (req_entity.is_user() && (&req_entity.user.clone().unwrap().id == user_id
+            || req_entity.user.as_ref().map_or(false, |u| u.is_admin())))
             || (req_entity
                 .token
                 .as_ref()
@@ -224,8 +224,8 @@ impl User {
 
     #[allow(unused)]
     pub fn can_delete_data_storage_key(req_entity: AuthEntity, user_id: &Uuid) -> bool {
-        (req_entity.is_user() && &req_entity.user.clone().unwrap().id == user_id
-            || req_entity.user.unwrap().is_admin())
+        (req_entity.is_user() && (&req_entity.user.clone().unwrap().id == user_id
+            || req_entity.user.as_ref().map_or(false, |u| u.is_admin())))
             || (req_entity
                 .token
                 .as_ref()
