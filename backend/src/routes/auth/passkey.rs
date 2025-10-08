@@ -53,6 +53,7 @@ lazy_static! {
                             raw_url
                         }
                     }
+                }
             },
             Err(_) => "localhost".to_string(),
         };
@@ -65,7 +66,12 @@ lazy_static! {
             },
             Err(_) => "localhost".to_string(),
         };
-        let rp_name = format!("auth-rs-{}", rp_id.split(".").next().unwrap_or("localhost"));
+        let rp_name = format!(
+            "auth-rs-{}",
+            rp_id.split('.')
+                .nth(rp_id.split('.').count() - 2)
+                .unwrap_or("localhost")
+        );
 
         let rp_origin = Url::parse(&rp_origin_str)
             .expect("Invalid PUBLIC_BASE_URL -> Cannot parse URL for passkey origin");
