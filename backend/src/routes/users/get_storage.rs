@@ -28,7 +28,7 @@ pub async fn get_user_data_storage(
         Err(err) => return json_response(err.into()),
     };
 
-    if User::can_read_full_data_storage(req_entity.clone(), &req_entity.user_id) {
+    if !User::can_read_full_data_storage(req_entity.clone(), &req_entity.user_id) {
         return json_response(HttpResponse::forbidden("Forbidden"));
     }
 
@@ -51,7 +51,7 @@ pub async fn get_user_data_storage_key(
         Err(err) => return json_response(err.into()),
     };
 
-    if User::can_read_data_storage_key(req_entity.clone(), &req_entity.user_id) {
+    if !User::can_read_data_storage_key(req_entity.clone(), &req_entity.user_id) {
         return json_response(HttpResponse::forbidden("Forbidden"));
     }
 

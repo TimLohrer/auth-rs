@@ -39,7 +39,7 @@ pub async fn update_user_data_storage_key(
         Err(err) => return json_response(err.into()),
     };
 
-    if User::can_read_data_storage_key(req_entity.clone(), &req_entity.user_id) {
+    if !User::can_read_data_storage_key(req_entity.clone(), &req_entity.user_id) {
         return json_response(HttpResponse::forbidden("Forbidden"));
     }
 
@@ -55,19 +55,19 @@ pub async fn update_user_data_storage_key(
 }
 
 #[allow(unused)]
-#[delete("/users/<id>/data-storage/<key>", format = "json")]
+#[delete("/users/<id>/data-storage/<key>")]
 pub async fn delete_user_data_storage_key(
     db: Connection<AuthRsDatabase>,
     req_entity: AuthEntity,
     id: &str,
     key: &str,
-) -> (Status, Json<HttpResponse<Value>>) {
+) -> (Status, Json<HttpResponse<()>>) {
     let uuid = match parse_uuid(id) {
         Ok(uuid) => uuid,
         Err(err) => return json_response(err.into()),
     };
 
-    if User::can_delete_data_storage_key(req_entity.clone(), &req_entity.user_id) {
+    if !User::can_delete_data_storage_key(req_entity.clone(), &req_entity.user_id) {
         return json_response(HttpResponse::forbidden("Forbidden"));
     }
 
@@ -76,7 +76,7 @@ pub async fn delete_user_data_storage_key(
             match user.get_data_storage_by_key(key) {
                 Some(value) => {
                     match user.delete_data_storage_key(&db, key).await {
-                        Ok(_) => json_response(HttpResponse::success("Deleted user storage key", value)),
+                        Ok(_) => json_response(HttpResponse::success_no_data("Deleted user storage key")),
                         Err(_) => json_response(HttpResponse::internal_error("Failed to delete user storage key")),
                     }
                 },
