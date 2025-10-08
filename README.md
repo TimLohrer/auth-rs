@@ -12,10 +12,6 @@ Before starting the services, ensure the following environment variables are pro
 
 #### Backend Service (`auth-rs-backend`)
 
-- **`ROCKET_ADDRESS`**: The address the backend server will bind to.  
-  - **Default**: `0.0.0.0` (binds to all network interfaces).  
-  - **Note**: Do not change this unless necessary.
-
 - **`ROCKET_DATABASES`**: The database connection string for MongoDB.  
   - **Default**: `{auth-rs-db={url="mongodb://mongodb:27017"}}`.  
   - **Note**: Update the `url` if you modify the MongoDB service name, port, or credentials.
@@ -28,26 +24,14 @@ Before starting the services, ensure the following environment variables are pro
   - **Example**: `P@ssw0rd123!`. -> DO NOT USE THIS ONE!  
   - **Note**: Ensure this is secure to protect the admin account.
 
-- **`WEBAUTHN_RP_ID`**: The domain name of the Relying Party (RP) for WebAuthn.  
-  - **Example**: `yourdomain.com`.  
-  - **Note**: Do not include `http://`, `https://`, or subdomains.
-
-- **`WEBAUTHN_RP_ORIGIN`**: The full URL of your frontend application.  
-  - **Example**: `https://subdomain.yourdomain.com`.  
-  - **Note**: Must match the origin of your frontend for WebAuthn to work.
-
-- **`WEBAUTHN_RP_NAME`**: The name of the Relying Party (RP) displayed to users during WebAuthn authentication.  
-  - **Example**: `auth-rs`.  
-  - **Note**: Avoid spaces or special characters.
-
-- **`TOTP_ISSUER_NAME`**: The name of the TOTP (Time-based One-Time Password) issuer displayed to users in their authenticator app.  
-  - **Example**: `auth-rs`.  
-  - **Note**: Avoid spaces or special characters.
+- **`PUBLIC_BASE_URL`**: The base url to your public frontend.
+  - **Example**: `https://auth.example.com`.
+  - **Note**: If you use a localhost domain for your frontend, passkeys will not be available.
 
 #### Frontend Service (`auth-rs-frontend`)
 
 - **`PUBLIC_API_URL`**: The base URL for the backend API that the frontend will communicate with.  
-  - **Example**: `https://yourdomain.com/api`.  
+  - **Example**: `https://auth.example.com/api`.
   - **Note**: Ensure this matches the actual URL where your backend is hosted.
 
 ---

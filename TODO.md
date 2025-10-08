@@ -9,7 +9,7 @@
 - [x] Audit Logs for Passkeys
 - [ ] Add openid well_known page (OCID support)
 - [ ] We want dedicated get all routes like for the passkeys
-- [ ] weniger envs im backend. einfach einmal url angeben und daraus die ganzen totp issuer etc raus nehmen (einfacheres setup)
+- [x] less envs in backend -> impler setup
 - [ ] cleaneres db env im backend, das kann nicht sein, dass man das so dumm angeben muss???
 - [x] update system user data on restart if changed
 
