@@ -41,9 +41,16 @@ impl DatabaseMigrator {
                 .await
                 .map_err(|e| format!("Failed to update users during migration: {:?}", e))?;
             
+            // ignore warning, will be required for next migration
             db_version = "1.0.23".to_string();
             println!("Migration to version 1.0.23 completed.");
         }
+
+        // Add future migrations here
+        // if db_version == "1.0.23" {
+        //     // Migration code...
+        //     db_version = "1.0.24".to_string();
+        // }
 
         Self::update_version_history(&db, &current_version).await;
 
