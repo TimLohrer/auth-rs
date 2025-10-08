@@ -408,14 +408,14 @@ impl User {
     #[allow(unused)]
     pub async fn update_data_storage_key(&mut self, connection: &Connection<AuthRsDatabase>, key: &str, value: Value) -> Result<(), HttpResponse<()>> {
         self.data_storage.insert(key.to_string(), value);
-        self.update(connection).await;
+        self.update(connection).await?;
         Ok(())
     }
 
     #[allow(unused)]
     pub async fn delete_data_storage_key(&mut self, connection: &Connection<AuthRsDatabase>, key: &str) -> Result<(), HttpResponse<()>> {
         self.data_storage.remove(key);
-        self.update(connection).await;
+        self.update(connection).await?;
         Ok(())
     }
 
