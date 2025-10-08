@@ -1,5 +1,7 @@
 FROM rust:slim AS builder
 
+ARG VERSION
+
 WORKDIR /app
 
 LABEL org.opencontainers.image.source="https://github.com/timlohrer/auth-rs"
@@ -10,6 +12,7 @@ COPY src ./src
 COPY Cargo.toml Rocket.toml ./
 
 ENV ROCKET_ADDRESS=0.0.0.0
+ENV VERSION=$VERSION
 
 # install required packages
 RUN apt-get update -y && \

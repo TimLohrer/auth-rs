@@ -63,6 +63,8 @@ jobs:
         context: ./backend
         file: ./backend/Dockerfile
         push: true
+        build-args: |
+          VERSION=${{ steps.extract_tag.outputs.VERSION }}
         tags: |
           timlohrer/auth-rs-backend:${{ steps.extract_tag.outputs.VERSION }}
           timlohrer/auth-rs-backend:latest
