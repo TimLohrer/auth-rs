@@ -53,7 +53,7 @@
 	{/if}
 	{#if backendVersion !== $version && backendVersion !== undefined}
 		<div class="text-[9px] text-yellow-400 opacity-70" title="Backend version: {backendVersion}">
-			⚠️ Backend version missmatch: {backendVersion}
+			⚠️ Backend version mismatch: {backendVersion}
 		</div>
 	{/if}
 
