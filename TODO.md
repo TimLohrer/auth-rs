@@ -10,7 +10,7 @@
 - [ ] Add openid well_known page (OCID support)
 - [ ] We want dedicated get all routes like for the passkeys
 - [x] less envs in backend -> impler setup
-- [ ] cleaneres db env im backend, das kann nicht sein, dass man das so dumm angeben muss???
+- [x] cleaner db connection env
 - [x] update system user data on restart if changed
 
 ## Frontend

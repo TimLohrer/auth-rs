@@ -12,9 +12,9 @@ Before starting the services, ensure the following environment variables are pro
 
 #### Backend Service (`auth-rs-backend`)
 
-- **`ROCKET_DATABASES`**: The database connection string for MongoDB.  
-  - **Default**: `{auth-rs-db={url="mongodb://mongodb:27017"}}`.  
-  - **Note**: Update the `url` if you modify the MongoDB service name, port, or credentials.
+- **`DATABASE_URL`**: The database connection string for MongoDB.  
+  - **Default**: `mongodb://mongodb:27017`.  
+  - **Note**: Update if you modify the MongoDB host, port, or credentials.
 
 - **`SYSTEM_EMAIL`**: The email address for the system administrator.  
   - **Example**: `admin@example.com`.  
