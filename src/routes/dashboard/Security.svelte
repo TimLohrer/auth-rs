@@ -2,7 +2,7 @@
 	import { Circle } from 'svelte-loading-spinners';
 	import TotpInput from '../../lib/components/auth/TotpInput.svelte';
 	import Popup from '../../lib/components/global/Popup.svelte';
-	import { ClockFading, KeyRound, Pen, Search, ShieldCheck, ShieldX, Trash } from 'lucide-svelte';
+	import { ClockFading, KeyRound, Pen, Search, ShieldCheck, ShieldX, Trash, X } from 'lucide-svelte';
 	import type AuthRsApi from "$lib/api";
 	import type User from "$lib/models/User";
 	import { goto } from '$app/navigation';
@@ -198,37 +198,42 @@
         <div class="flex flex-col h-full w-full" style="margin-top: 25px;">
             {#if passkeys.filter(p => p.owner == user._id).length < 1}
                 <div class="flex flex-col items-center justify-center gap-[25px] h-full w-full">
-                    <Search size="75" class="opacity-40" />
-                    <p class="text-[20px] text-center opacity-50">You dont have any passkeys registered.</p>
-                    <!-- svelte-ignore a11y_click_events_have_key_events -->
-                    <!-- svelte-ignore a11y_no_static_element_interactions -->
-                    <div
-                        class="border-blue-500 text-blue-500 transition-all border-[1.5px] cursor-default rounded-md"
-                        class:opacity-50={!supportsPasskeys}
-                        class:hover:bg-blue-500={supportsPasskeys}
-                        class:hover:text-white={supportsPasskeys}
-                        class:hover:cursor-pointer={supportsPasskeys}
-                        class:bg-blue-500={supportsPasskeys && registeringPasskey}
-                        class:text-white={supportsPasskeys && registeringPasskey}
-                        class:cursor-pointer={supportsPasskeys && registeringPasskey}
-                        style="padding: 10px; margin-top: 25px;"
-                        on:click={supportsPasskeys ? createPasskey : () => {}}
-                    >
-                        <div class="flex flex-row items-center gap-[10px]">
-                            {#if registeringPasskey}
-                                <Circle size=17.5 color="white" />
-                                <p class="text-[17px]">Waiting for browser</p>
-                            {:else}
-                                <KeyRound size=20 />
-                                <p class="text-[17px]">Register Passkey</p>
-                            {/if}
+                    {#if window.location.protocol != 'https:' && window.location.hostname != 'localhost'}
+                        <Search size="75" class="opacity-40" />
+                        <p class="text-[20px] text-center opacity-50">You dont have any passkeys registered.</p>
+                        <!-- svelte-ignore a11y_click_events_have_key_events -->
+                        <!-- svelte-ignore a11y_no_static_element_interactions -->
+                        <div
+                            class="border-blue-500 text-blue-500 transition-all border-[1.5px] cursor-default rounded-md"
+                            class:opacity-50={!supportsPasskeys}
+                            class:hover:bg-blue-500={supportsPasskeys}
+                            class:hover:text-white={supportsPasskeys}
+                            class:hover:cursor-pointer={supportsPasskeys}
+                            class:bg-blue-500={supportsPasskeys && registeringPasskey}
+                            class:text-white={supportsPasskeys && registeringPasskey}
+                            class:cursor-pointer={supportsPasskeys && registeringPasskey}
+                            style="padding: 10px; margin-top: 25px;"
+                            on:click={supportsPasskeys ? createPasskey : () => {}}
+                        >
+                            <div class="flex flex-row items-center gap-[10px]">
+                                {#if registeringPasskey}
+                                    <Circle size=17.5 color="white" />
+                                    <p class="text-[17px]">Waiting for browser</p>
+                                {:else}
+                                    <KeyRound size=20 />
+                                    <p class="text-[17px]">Register Passkey</p>
+                                {/if}
+                            </div>
                         </div>
-                    </div>
-                    {#if !supportsPasskeys}
-                        <Tooltip tip="Your browser doesn't support passkeys." bottom color="var(--color-red-600)">
-                            <!-- svelte-ignore element_invalid_self_closing_tag -->
-                            <div class="absolute w-[160px] h-[45px] z-10" style="top: -70px; left: -80px;" />
-                        </Tooltip>
+                        {#if !supportsPasskeys}
+                            <Tooltip tip="Your browser doesn't support passkeys." bottom color="var(--color-red-600)">
+                                <!-- svelte-ignore element_invalid_self_closing_tag -->
+                                <div class="absolute w-[160px] h-[45px] z-10" style="top: -70px; left: -80px;" />
+                            </Tooltip>
+                        {/if}
+                    {:else}
+                        <X size="75" color="var(--color-red-600)" />
+                        <p class="text-[20px] text-center opacity-50">Passkeys are not available in a localhost environment :/</p>
                     {/if}
                 </div>
             {:else}
