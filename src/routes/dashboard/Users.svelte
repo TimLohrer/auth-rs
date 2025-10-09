@@ -2,7 +2,7 @@
 	import TextInput from '../../lib/components/global/TextInput.svelte';
 	import Popup from '../../lib/components/global/Popup.svelte';
 	import type AuthRsApi from "$lib/api";
-	import { PackageOpen, Pen, Trash, UserCheck, UserX } from "lucide-svelte";
+	import { LockOpen, PackageOpen, Pen, Trash, UserCheck, UserX } from "lucide-svelte";
 	import { onMount } from "svelte";
 	import UserUpdates from '$lib/models/UserUpdates';
 	import User from '$lib/models/User';
@@ -40,6 +40,9 @@
 
     let enableUserPopup: boolean = false;
     let enableUser: User | null = null;
+
+    let disableTotpPopup: boolean = false;
+    let disableTotpUser: User | null = null;
 
     let deleteUserPopup: boolean = false;
     let deleteUser: User | null = null;
@@ -250,6 +253,49 @@
     </Popup>
 {/if}
 
+{#if disableTotpPopup}
+    <Popup title="Disable MFA" onClose={() => disableTotpPopup = false}>
+        <div class="flex flex-col items-center justify-center max-w-[350px]" style="margin-top: 20px; margin-bottom: 20px;">
+            <p class="text-[14px] text-center opacity-50">Are you sure you want to disable MFA for "{disableTotpUser?.firstName} {disableTotpUser?.lastName}"?</p>
+            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <p
+                class="text-green-600 cursor-pointer rounded-md text-[18px]"
+                style="margin-top: 25px;"
+                on:click={() => {
+                    disableTotpPopup = false;
+                    api.disableMfaForUser(currentUser, disableTotpUser!._id)
+                        .then(disabledTOTPUser => {
+                            users[users.map(user => user._id).indexOf(disableTotpUser!._id)] = disabledTOTPUser;
+                        })
+                        .catch(e => console.error(e));
+                }}
+            >Confirm</p>
+        </div>
+    </Popup>
+{/if}
+{#if enableUserPopup}
+    <Popup title="Enable User" onClose={() => enableUserPopup = false}>
+        <div class="flex flex-col items-center justify-center max-w-[350px]" style="margin-top: 20px; margin-bottom: 20px;">
+            <p class="text-[14px] text-center opacity-50">Are you sure you want to enable the user "{enableUser?.firstName} {enableUser?.lastName}"?</p>
+            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <p
+                class="text-green-600 cursor-pointer rounded-md text-[18px]"
+                style="margin-top: 25px;"
+                on:click={() => {
+                    enableUserPopup = false;
+                    api.updateUser(enableUser!, new UserUpdates({ email: null, password: null, firstName: null, lastName: null, roles: null, disabled: false }))
+                        .then(enabledUser => {
+                            users[users.map(user => user._id).indexOf(enableUser!._id)] = enabledUser;
+                        })
+                        .catch(e => console.error(e));
+                }}
+            >Confirm</p>
+        </div>
+    </Popup>
+{/if}
+
 {#if deleteUserPopup}
     <Popup title="Delete User" onClose={() => deleteUserPopup = false}>
         <div class="flex flex-col items-center justify-center max-w-[350px]" style="margin-top: 20px; margin-bottom: 20px;">
@@ -342,6 +388,21 @@
                                             size=20
                                         />
                                     {/if}
+                                </div>
+                            </Tooltip>
+                        {/if}
+                        {#if User.isSystemAdmin(currentUser) && user.mfa}
+                            <Tooltip tip="Disable MFA" bottom color="var(--color-red-600)">
+                                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                                <div class="flex self-end" style="margin-right: 12.5px;" on:click={() => {
+                                    disableTotpUser = user;
+                                    disableTotpPopup = true;
+                                }}>
+                                    <LockOpen
+                                        class="cursor-pointer hover:text-red-600 transition-all"
+                                        size=20
+                                    />
                                 </div>
                             </Tooltip>
                         {/if}

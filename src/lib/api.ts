@@ -12,7 +12,7 @@ import type Role from "./models/Role";
 import type RoleUpdates from "./models/RoleUpdates";
 import type Settings from "./models/Settings";
 import type SettingsUpdates from "./models/SettingsUpdates";
-import type User from "./models/User";
+import User from './models/User';
 import type UserUpdates from "./models/UserUpdates";
 import PasskeyUtils from "./passkeyUtils";
 
@@ -217,7 +217,7 @@ class AuthRsApi {
 		}
 	}
 
-	async disableMfa(user: User, code: string | null, password: string | null): Promise<User> {
+	async disableMfa(user: User, code: string): Promise<User> {
 		if (!this.token) {
 			throw new Error('No token');
 		}
@@ -228,7 +228,34 @@ class AuthRsApi {
 				'Content-Type': 'application/json',
 				Authorization: `Bearer ${this.token}`
 			},
-			body: JSON.stringify({ code, password })
+			body: JSON.stringify({ code })
+		});
+
+		if (response.ok) {
+			const data = await response.json();
+			return data.data;
+		} else {
+			console.error(await response.json());
+			throw new Error(`(${response.status}): ${response.statusText}`);
+		}
+	}
+
+	async disableMfaForUser(user: User, targetUserId: string): Promise<User> {
+		if (!this.token) {
+			throw new Error('No token');
+		}
+
+		if (!User.isSystemAdmin(user)) {
+			throw new Error('Only system admins can disable MFA for other users.');
+		}
+
+		const response = await fetch(`${this.baseUrl}/users/${targetUserId}/mfa/totp/disable`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${this.token}`
+			},
+			body: JSON.stringify({ code: null })
 		});
 
 		if (response.ok) {

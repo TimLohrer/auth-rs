@@ -93,7 +93,6 @@ pub async fn enable_totp_mfa(
 #[serde(rename_all = "camelCase")]
 pub struct DisableMfaData {
     pub code: Option<String>,
-    pub password: Option<String>,
 }
 
 // Process disable TOTP MFA and return a Result
@@ -124,9 +123,9 @@ async fn process_disable_totp_mfa(
         return Err(ApiError::BadRequest("TOTP MFA is not enabled!".to_string()));
     }
 
-    if mfa_data.code.is_none() && mfa_data.password.is_none() {
+    if mfa_data.code.is_none() && !req_entity.user.as_ref().unwrap().is_system_admin() {
         return Err(ApiError::BadRequest(
-            "Missing TOTP code or password!".to_string(),
+            "Missing TOTP code!".to_string(),
         ));
     }
 
@@ -136,11 +135,7 @@ async fn process_disable_totp_mfa(
                 .await;
 
         if !is_valid {
-            return Err(ApiError::Unauthorized("Invalid TOTP code!".to_string()));
-        }
-    } else if let Some(password) = mfa_data.password {
-        if user.verify_password(&password).is_err() {
-            return Err(ApiError::Unauthorized("Incorrect password!".to_string()));
+            return Err(ApiError::Forbidden("Invalid TOTP code!".to_string()));
         }
     }
 
@@ -162,7 +157,7 @@ pub async fn disable_totp_mfa(
     let mfa_data = data.into_inner();
 
     match process_disable_totp_mfa(&db, req_entity, id, mfa_data).await {
-        Ok(user) => Json(HttpResponse::success("TOTP MFA disabled.", user.to_dto(false))),
+        Ok(user) => Json(HttpResponse::success("TOTP MFA disabled.", user.to_dto(true))),
         Err(err) => Json(err.into()),
     }
 }
