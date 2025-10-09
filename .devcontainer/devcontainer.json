@@ -1,0 +1,36 @@
+{
+  "name": "auth-rs DevContainer",
+  "dockerComposeFile": [
+    "docker-compose.yml"
+  ],
+  "service": "dev",
+  "workspaceFolder": "/workspaces/auth-rs",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.formatOnSave": true,
+        "rust-analyzer.checkOnSave.command": "clippy"
+      },
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "serayuzgur.crates",
+        "tamasfe.even-better-toml",
+        "svelte.svelte-vscode",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  },
+  "forwardPorts": [3000, 8000, 27017],
+  "portsAttributes": {
+    "3000": { "label": "Frontend" },
+    "8000": { "label": "Backend" },
+    "27017": { "label": "MongoDB" }
+  },
+  "postCreateCommand": "bun install",
+  "remoteEnv": {
+    "ROCKET_ADDRESS": "0.0.0.0",
+    "ROCKET_DATABASES": "{auth-rs-db={url=\"mongodb://mongodb:27017\"}}",
+    "PUBLIC_API_URL": "http://localhost:8000/api"
+  }
+}
