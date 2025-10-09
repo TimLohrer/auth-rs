@@ -26,7 +26,7 @@
         {/if}
         {#each redirectUris as redirectUri}
             <div class="flex flex-row items-center justify-between gap-[10px] text-[13px] bg-[#111] rounded-md" style="padding: 7.5px;">
-                <p style="color: white !important;">{redirectUri.split('?')[0]}</p>
+                <p style="color: white !important;" class="wrap-anywhere">{redirectUri.split('?')[0]}</p>
                 <Tooltip tip="Remove Redirect URI" right color="var(--color-red-600)">
                     <div on:click={() => onRemove(redirectUri)}>
                         <X size="15" class="hover:text-red-500 cursor-pointer transition-all" />
