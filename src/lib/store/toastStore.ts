@@ -21,7 +21,6 @@ toastQueue.subscribe((queuedToasts) => {
 });
 
 activeToasts.subscribe((toasts) => {
-    console.log(`Active toasts: ${toasts.length}`);
     
     toasts.forEach((toast) => {
         if (!markedToasts.has(toast.id)) {
