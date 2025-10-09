@@ -13,7 +13,7 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
-    class="flex flex-row items-center justify-start gap-[15px] w-[275px] border-[2px] border-[#222] rounded-md cursor-pointer {isLogout ? 'hover:text-red-500' : 'hover:text-blue-500'} {isLogout ? 'hover:border-red-500' : 'hover:border-blue-500'} transition-all"
+    class="flex flex-row items-center justify-start gap-[15px] {isLogout ? 'w-full' : 'w-[275px]'} border-[2px] border-[#222] rounded-md cursor-pointer {isLogout ? 'hover:text-red-500' : 'hover:text-blue-500'} {isLogout ? 'hover:border-red-500' : 'hover:border-blue-500'} transition-all"
     class:active={active}
     style="padding: 10px 15px; margin-top: {isLogout ? '25' : '0'}px;"
     on:click={selectTab}
