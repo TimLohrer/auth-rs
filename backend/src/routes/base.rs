@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use dotenv::var;
+use std::env;
 use rocket::{get, serde::json::Json};
 
 use crate::models::http_response::HttpResponse;
@@ -7,14 +7,13 @@ use crate::models::http_response::HttpResponse;
 #[allow(unused)]
 #[get("/")]
 pub async fn base() -> Json<HttpResponse<HashMap<String, String>>> {
+    let version = env::var("VERSION").unwrap_or_else(|_| "dev".to_string());
+
     Json(HttpResponse {
         status: 200,
         message: "Welcome to the auth-rs API!".to_string(),
         data: Some(HashMap::from_iter(vec![
-            (
-                "version".to_string(),
-                var("VERSION").expect("Missing VERSION in .env!"),
-            ),
+            ("version".to_string(), version),
             (
                 "repository".to_string(),
                 "https://github.com/TimLohrer/auth-rs".to_string(),

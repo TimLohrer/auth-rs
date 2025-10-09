@@ -189,9 +189,9 @@ fn rocket() -> _ {
         .allow_credentials(true);
 
     // Load .env and merge DATABASE_URL into Rocket's Figment so
-    // `rocket_db_pools` can read `databases.auth.url` from the environment.
+    // `rocket_db_pools` can read `databases.auth-rs-db.url` from the environment.
     let fig = rocket::Config::figment()
-        .merge(("databases.auth.url", var("DATABASE_URL").expect("DATABASE_URL must be set")));
+        .merge(("databases.auth-rs-db.url", var("DATABASE_URL").expect("DATABASE_URL must be set")));
 
     rocket::custom(fig)
         .attach(db::AuthRsDatabase::init())

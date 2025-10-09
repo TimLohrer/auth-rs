@@ -1,6 +1,6 @@
 FROM rust:slim AS builder
 
-ARG VERSION
+ARG VERSION=dev
 
 WORKDIR /app
 
@@ -25,6 +25,8 @@ RUN cargo build --release
 # Runtime stage
 FROM debian:bookworm-slim
 
+ARG VERSION=dev
+
 WORKDIR /app
 
 # Install necessary runtime dependencies
@@ -34,6 +36,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy the binary from the builder stage
 COPY --from=builder /app/target/release/auth-rs /app/auth-rs
+
+# Expose build version as a label
+LABEL org.opencontainers.image.version=$VERSION
+
+# Ensure runtime image has VERSION env available (from build-arg)
+ENV VERSION=$VERSION
 
 EXPOSE 8000
 

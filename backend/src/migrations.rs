@@ -1,5 +1,5 @@
+use std::env;
 use crate::{models::{settings::Settings, user::User}, SETTINGS_ID};
-use dotenv::var;
 use mongodb::bson::{doc, DateTime, Uuid};
 use rocket::serde::{Deserialize, Serialize};
 use rocket_db_pools::mongodb::Database;
@@ -9,7 +9,7 @@ pub struct DatabaseMigrator {}
 impl DatabaseMigrator {
     pub async fn run_migrations(db: &Database) -> Result<(), String> {
         let invalid_version_chars = regex::Regex::new(r"[^0-9.]").unwrap();
-        let current_version_raw = var("VERSION").expect("VERSION must be set in .env file");
+        let current_version_raw = env::var("VERSION").expect("VERSION must be set in .env file");
         let current_version = invalid_version_chars.replace_all(&current_version_raw, "").to_string();
         let mut db_version = match db
             .collection::<Settings>("settings")
