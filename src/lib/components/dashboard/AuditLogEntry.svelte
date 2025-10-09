@@ -5,7 +5,7 @@
 	import type OAuthApplication from "$lib/models/OAuthApplication";
 	import type RegistrationToken from '$lib/models/RegistrationToken';
 	import type Role from "$lib/models/Role";
-	import type User from "$lib/models/User";
+	import User from "$lib/models/User";
 	import type Passkey from '$lib/models/Passkey';
 	import { jsonAction } from '$lib/utils/jsonAttributes';
 
@@ -21,7 +21,7 @@
 
     function getEntityName(entityType: AuditLogEntityType, entityId: string): string {
         if (entityType == AuditLogEntityType.User) {
-            if (entityId == user._id) {
+            if (entityId == user._id && entityId !== User.DEFAULT_USER_ID) {
                 return "You";
             } else if (users.find(u => u._id == entityId) != null) {;
                 const u = users.find(u => u._id == entityId)!;
@@ -52,6 +52,9 @@
         if (auditLog.reason.toUpperCase().includes('ENABLE TOTP')) {
             return `${target} enabled 2FA.`;
         } else if (auditLog.reason.toUpperCase().includes('DISABLE TOTP')) {
+            if (log.authorId !== log.entityId) {
+                return `${author} disabled 2FA for ${target}.`;
+            }
             return `${target} disabled 2FA.`;
         } else if (auditLog.reason.toUpperCase().includes("PASSKEY LOGIN SUCCESSFUL")) {
             const passkeyId = auditLog.reason.split('|')[1];
