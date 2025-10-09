@@ -201,7 +201,7 @@
         <div class="flex flex-col h-full w-full" style="margin-top: 25px;">
             {#if passkeys.filter(p => p.owner == user._id).length < 1}
                 <div class="flex flex-col items-center justify-center gap-[25px] h-full w-full">
-                    {#if window.location.protocol != 'https:' && window.location.hostname != 'localhost'}
+                    {#if window.location.protocol == 'https:'}
                         <Search size="75" class="opacity-40" />
                         <p class="text-[20px] text-center opacity-50">You dont have any passkeys registered.</p>
                         <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -236,7 +236,7 @@
                         {/if}
                     {:else}
                         <X size="75" color="var(--color-red-600)" />
-                        <p class="text-[20px] text-center opacity-50">Passkeys are not available in a localhost environment :/</p>
+                        <p class="text-[20px] text-center opacity-50">Passkeys are not available in non https environments :/</p>
                     {/if}
                 </div>
             {:else}
