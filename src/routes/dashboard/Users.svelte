@@ -265,8 +265,8 @@
                 on:click={() => {
                     disableToTpPopup = false;
                     api.disableMfaForUser(currentUser, disableTotpUser!._id)
-                        .then(disbaledTOTPUser => {
-                            users[users.map(user => user._id).indexOf(disableTotpUser!._id)] = disbaledTOTPUser;
+                        .then(disabledTOTPUser => {
+                            users[users.map(user => user._id).indexOf(disableTotpUser!._id)] = disabledTOTPUser;
                         })
                         .catch(e => console.error(e));
                 }}
