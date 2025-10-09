@@ -162,7 +162,7 @@ pub async fn disable_totp_mfa(
     let mfa_data = data.into_inner();
 
     match process_disable_totp_mfa(&db, req_entity, id, mfa_data).await {
-        Ok(user) => Json(HttpResponse::success("TOTP MFA disabled.", user.to_dto(false))),
+        Ok(user) => Json(HttpResponse::success("TOTP MFA disabled.", user.to_dto(true))),
         Err(err) => Json(err.into()),
     }
 }
