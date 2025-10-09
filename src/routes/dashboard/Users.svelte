@@ -41,7 +41,7 @@
     let enableUserPopup: boolean = false;
     let enableUser: User | null = null;
 
-    let disableToTpPopup: boolean = false;
+    let disableTotpPopup: boolean = false;
     let disableTotpUser: User | null = null;
 
     let deleteUserPopup: boolean = false;
