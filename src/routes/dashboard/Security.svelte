@@ -359,18 +359,8 @@
 
 {#if disable2FAPopup}
     <Popup title="Disable MFA" onClose={() => disable2FAPopup = false}>
-        <!-- <div class="flex flex-col items-center justify-center w-full" style="margin-top: 10px; margin-bottom: 10px;">
-            <TextInput type="password" label="" placeholder="Confirm Password" bind:value={disablePassword} autocomplete="current-password" autofocus />
-            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-            <!-- svelte-ignore a11y_click_events_have_key_events -->
-            <!-- <p
-                class="text-red-600 cursor-default rounded-md text-[18px] opacity-50 transition-all"
-                style="margin-top: 25px;"
-                class:opacity-100={disablePassword.length > 0}
-                class:cursor-pointer={disablePassword.length > 0}
-                on:click={disablePassword.length > 0 ? () => api.disableMfa(user, null, disablePassword).then(newUser => {disable2FAPopup = false; user = newUser; goto('/logout')}) : null}
-            >Confirm</p> -->
-        <!-- </div> -->
-        <TotpInput totp={[]} disabled={false} completeTotp={async (code: string) => await api.disableMfa(user, code).then(newUser => {disable2FAPopup = false; user = newUser; goto('/logout'); return true}).catch((e) => {return false})}  />
+        <div class="flex flex-col items-center justify-center w-full" style="margin-top: 10px; margin-bottom: 10px;">
+            <TotpInput totp={[]} disabled={false} completeTotp={async (code: string) => await api.disableMfa(user, code).then(newUser => {disable2FAPopup = false; user = newUser; goto('/logout'); return true}).catch((e) => {return false})}  />
+        </div>
     </Popup>
 {/if}
