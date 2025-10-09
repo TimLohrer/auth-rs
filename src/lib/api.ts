@@ -490,7 +490,7 @@ class AuthRsApi {
 	async updatePasskey(
 		passkeyId: string,
 		updates: PasskeyUpdates,
-		supressSuccessToast: boolean = false
+		suppressSuccessToast: boolean = false
 	): Promise<Passkey> {
 		if (!this.token) {
 			throw new Error('No token');
@@ -507,7 +507,7 @@ class AuthRsApi {
 
 		if (response.ok) {
 			const data = await response.json();
-			if (!supressSuccessToast) {
+			if (!suppressSuccessToast) {
 				showToast(new Toast('Passkey updated successfully!', 'info'));
 			}
 			return data.data;
