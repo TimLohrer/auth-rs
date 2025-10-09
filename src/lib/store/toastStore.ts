@@ -13,7 +13,6 @@ toastQueue.subscribe((queuedToasts) => {
             if (spaceLeft > 0) {
                 const toAdd = queuedToasts.slice(0, spaceLeft);
                 toastQueue.update((q) => q.slice(toAdd.length));
-                setTimeout(() => toastQueue.update((q) => q.slice(toAdd.length)), toAdd.sort((a, b) => a.ttl - b.ttl)[0].ttl);
                 return [...currentToasts, ...toAdd];
             }
             return currentToasts;
