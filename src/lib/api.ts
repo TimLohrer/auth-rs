@@ -223,7 +223,6 @@ class AuthRsApi {
 			if (data.data?.mfaRequired) {
 				this.currentMfaFlowId = data.data.mfaFlowId;
 			}
-			showToast(new Toast('MFA enabled successfully!', 'success', 10000));
 			return data.data;
 		} else {
 			console.error(await response.json());
