@@ -40,6 +40,7 @@ COPY --from=builder /app/target/release/auth-rs /app/auth-rs
 # Expose build version as a label
 LABEL org.opencontainers.image.version=$VERSION
 
+ENV ROCKET_ADDRESS=0.0.0.0
 # Ensure runtime image has VERSION env available (from build-arg)
 ENV VERSION=$VERSION
 
