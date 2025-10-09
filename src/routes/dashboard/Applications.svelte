@@ -9,7 +9,7 @@
 	import { onMount } from "svelte";
 	import OAuthApplicationUpdates from '$lib/models/OAuthApplicationUpdates';
 	import type User from '$lib/models/User';
-	import DateUtils from '$lib/dateUtils';
+	import DateUtils from '$lib/utils/dateUtils';
     import Tooltip from "sv-tooltip";
 	import { jsonAction } from '$lib/utils/jsonAttributes';
 

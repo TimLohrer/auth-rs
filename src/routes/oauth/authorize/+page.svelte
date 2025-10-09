@@ -17,7 +17,7 @@
 	import User from "$lib/models/User";
 	import OAuthApplication from "$lib/models/OAuthApplication";
 	import { apiUrl } from '$lib/store/config';
-	import DateUtils from '$lib/dateUtils';
+	import DateUtils from '$lib/utils/dateUtils';
 
     let api: AuthRsApi | null = null;
     let user: User | null = null;

@@ -6,6 +6,8 @@
 	import { apiUrl, debugMode } from '$lib/store/config';
 	import { get } from 'svelte/store';
 	import AuthRsApi from '$lib/api';
+	import { showToast } from '$lib/store/toastStore';
+	import { Toast } from '$lib/models/Toast';
 
 	export let user: User;
 
@@ -20,6 +22,10 @@
 	onMount(async () => {
 		checkForUpdates();
 		backendVersion = await (new AuthRsApi($apiUrl)).checkOnlineState();
+		if (backendVersion !== undefined && backendVersion !== null && backendVersion !== $version && $version !== 'dev') {
+			console.warn(`Version mismatch: Frontend version is ${$version}, but backend version is ${backendVersion}`);
+			showToast(new Toast('Frontend and backend version mismatch! Please contact your system admin.', 'error'));
+		}
 	});
 </script>
 

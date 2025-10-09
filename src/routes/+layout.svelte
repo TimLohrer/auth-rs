@@ -4,6 +4,7 @@
 	import { initializeJsonClickHandler, cleanupJsonClickHandler } from '$lib/utils/jsonClickHandler';
 	import GlobalJsonViewPopup from '$lib/components/global/GlobalJsonViewPopup.svelte';
 	import '../app.css';
+	import Toasts from '$lib/components/global/Toasts.svelte';
 	
 	let { data, children } = $props<{
 		data: { apiUrl: string };
@@ -25,3 +26,6 @@
 
 <!-- Global JSON View Popup -->
 <GlobalJsonViewPopup />
+
+<!-- Global Toasts -->
+<Toasts />

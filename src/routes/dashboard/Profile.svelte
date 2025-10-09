@@ -5,7 +5,7 @@
 	import type AuthRsApi from '$lib/api';
 	import User from '$lib/models/User';
 	import type Role from '$lib/models/Role';
-	import DateUtils from '$lib/dateUtils';
+	import DateUtils from '$lib/utils/dateUtils';
 	import TextInput from '$lib/components/global/TextInput.svelte';
 	import Popup from '$lib/components/global/Popup.svelte';
 	import UserUpdates from '$lib/models/UserUpdates';

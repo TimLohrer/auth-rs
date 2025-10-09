@@ -1,6 +1,6 @@
 <script lang="ts">
     import { LogIn, MinusCircle, Pencil, PlusCircle, ShieldCheck, ShieldX, KeyRound } from 'lucide-svelte';
-	import DateUtils from "$lib/dateUtils";
+	import DateUtils from "$lib/utils/dateUtils";
 	import { AuditLog, AuditLogAction, AuditLogEntityType } from "$lib/models/AuditLog";
 	import type OAuthApplication from "$lib/models/OAuthApplication";
 	import type RegistrationToken from '$lib/models/RegistrationToken';

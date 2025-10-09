@@ -9,7 +9,7 @@
 	import TextField from '$lib/components/global/TextField.svelte';
 	import RoleList from '$lib/components/dashboard/RoleList.svelte';
 	import Role from '$lib/models/Role';
-	import DateUtils from '$lib/dateUtils';
+	import DateUtils from '$lib/utils/dateUtils';
 	import User from '$lib/models/User';
 	import Tooltip from 'sv-tooltip';
 	import { jsonAction } from '$lib/utils/jsonAttributes';
