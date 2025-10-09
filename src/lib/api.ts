@@ -12,8 +12,10 @@ import type Role from "./models/Role";
 import type RoleUpdates from "./models/RoleUpdates";
 import type Settings from "./models/Settings";
 import type SettingsUpdates from "./models/SettingsUpdates";
+import { Toast } from './models/Toast';
 import User from './models/User';
-import type UserUpdates from "./models/UserUpdates";
+import type UserUpdates from './models/UserUpdates';
+import { showToast } from './store/toastStore';
 import PasskeyUtils from './utils/passkeyUtils';
 
 class AuthRsApi {
@@ -38,6 +40,7 @@ class AuthRsApi {
 		if (response.ok) {
 			return data.data.version;
 		} else {
+			showToast(new Toast('Backend not reachable!', 'error', 10000));
 			return null;
 		}
 	}
@@ -52,6 +55,7 @@ class AuthRsApi {
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to load settings!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -72,9 +76,11 @@ class AuthRsApi {
 
 		if (response.ok) {
 			const data = await response.json();
+			showToast(new Toast('Settings updated successfully!', 'info'));
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to update settings!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -97,9 +103,11 @@ class AuthRsApi {
 			}
 			new AuthStateManager(this.baseUrl).setToken(data.data.token);
 			this.token = data.data.token;
+			showToast(new Toast('Login successful!', 'success'));
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Incorrect email or password!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -124,6 +132,7 @@ class AuthRsApi {
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Incorrect MFA code!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -133,6 +142,7 @@ class AuthRsApi {
 
 		if (!startResponse.ok) {
 			console.error(await startResponse.json());
+			showToast(new Toast('Failed to start passkey authentication!', 'error'));
 			throw new Error(`(${startResponse.status}): ${startResponse.statusText}`);
 		}
 
@@ -148,6 +158,7 @@ class AuthRsApi {
 		const credential = (await navigator.credentials.get({ publicKey })) as PublicKeyCredential;
 
 		if (!credential) {
+			showToast(new Toast('Passkey authentication failed!', 'error'));
 			throw new Error('No credential created!');
 		}
 
@@ -162,8 +173,8 @@ class AuthRsApi {
 					id: credential.id,
 					rawId: PasskeyUtils.bufferToBase64URLString(credential.rawId),
 					response: {
-						// @ts-expect-error
 						authenticatorData: PasskeyUtils.bufferToBase64URLString(
+							// @ts-expect-error
 							credential.response.authenticatorData
 						),
 						clientDataJSON: PasskeyUtils.bufferToBase64URLString(
@@ -184,9 +195,11 @@ class AuthRsApi {
 			const finishData = await finishResponse.json();
 			new AuthStateManager(this.baseUrl).setToken(finishData.data.token);
 			this.token = finishData.data.token;
+			showToast(new Toast('Login successful!', 'success'));
 			return finishData.data;
 		} else {
 			console.error(await finishResponse.json());
+			showToast(new Toast('Failed to finish passkey authentication!', 'error'));
 			throw new Error(`(${finishResponse.status}): ${finishResponse.statusText}`);
 		}
 	}
@@ -210,9 +223,11 @@ class AuthRsApi {
 			if (data.data?.mfaRequired) {
 				this.currentMfaFlowId = data.data.mfaFlowId;
 			}
+			showToast(new Toast('MFA enabled successfully!', 'success', 10000));
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to enable MFA!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -233,9 +248,11 @@ class AuthRsApi {
 
 		if (response.ok) {
 			const data = await response.json();
+			showToast(new Toast('MFA disabled successfully!', 'info'));
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to disable MFA! Incorrect code?', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -260,9 +277,11 @@ class AuthRsApi {
 
 		if (response.ok) {
 			const data = await response.json();
+			showToast(new Toast('Successfully disabled MFA for user!', 'info'));
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to disable MFA for user!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -291,9 +310,11 @@ class AuthRsApi {
 
 		if (response.ok) {
 			const data = await response.json();
+			showToast(new Toast('User created successfully!', 'success'));
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to create user!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -315,6 +336,7 @@ class AuthRsApi {
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to load current user!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -336,6 +358,7 @@ class AuthRsApi {
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to load users!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -354,6 +377,7 @@ class AuthRsApi {
 
 		if (!startResponse.ok) {
 			console.error(await startResponse.json());
+			showToast(new Toast('Failed to start passkey registration!', 'error'));
 			throw new Error(`(${startResponse.status}): ${startResponse.statusText}`);
 		}
 
@@ -374,6 +398,7 @@ class AuthRsApi {
 		const credential = (await navigator.credentials.create({ publicKey })) as PublicKeyCredential;
 
 		if (!credential) {
+			showToast(new Toast('Passkey registration failed!', 'error'));
 			throw new Error('No credential created!');
 		}
 
@@ -392,8 +417,8 @@ class AuthRsApi {
 						clientDataJSON: PasskeyUtils.bufferToBase64URLString(
 							credential.response.clientDataJSON
 						),
-						// @ts-expect-error
 						attestationObject: PasskeyUtils.bufferToBase64URLString(
+							// @ts-expect-error
 							credential.response.attestationObject
 						)
 					},
@@ -404,6 +429,7 @@ class AuthRsApi {
 
 		if (finishResponse.ok) {
 			const finishData = await finishResponse.json();
+			showToast(new Toast('Passkey registered successfully!', 'success'));
 			return new Passkey(
 				finishData.data.id,
 				finishData.data.owner,
@@ -412,6 +438,7 @@ class AuthRsApi {
 			);
 		} else {
 			console.error(await finishResponse.json());
+			showToast(new Toast('Failed to finish passkey registration!', 'error'));
 			throw new Error(`(${finishResponse.status}): ${finishResponse.statusText}`);
 		}
 	}
@@ -433,6 +460,7 @@ class AuthRsApi {
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to load passkeys!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -454,11 +482,16 @@ class AuthRsApi {
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to load passkeys!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
 
-	async updatePasskey(passkeyId: string, updates: PasskeyUpdates): Promise<Passkey> {
+	async updatePasskey(
+		passkeyId: string,
+		updates: PasskeyUpdates,
+		supressSuccessToast: boolean = false
+	): Promise<Passkey> {
 		if (!this.token) {
 			throw new Error('No token');
 		}
@@ -474,9 +507,13 @@ class AuthRsApi {
 
 		if (response.ok) {
 			const data = await response.json();
+			if (!supressSuccessToast) {
+				showToast(new Toast('Passkey updated successfully!', 'info'));
+			}
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to update passkey!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -495,9 +532,11 @@ class AuthRsApi {
 
 		if (response.ok) {
 			const data = await response.json();
+			showToast(new Toast('Passkey deleted successfully!', 'info'));
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to delete passkey!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -518,9 +557,11 @@ class AuthRsApi {
 
 		if (response.ok) {
 			const data = await response.json();
+			showToast(new Toast('User updated successfully!', 'info'));
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to update user!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -540,9 +581,11 @@ class AuthRsApi {
 
 		if (response.ok) {
 			const data = await response.json();
+			showToast(new Toast('User deleted successfully!', 'info'));
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to delete user!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -563,9 +606,11 @@ class AuthRsApi {
 
 		if (response.ok) {
 			const data = await response.json();
+			showToast(new Toast('Role created successfully!', 'success'));
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to create role!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -587,6 +632,7 @@ class AuthRsApi {
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to load roles!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -608,6 +654,7 @@ class AuthRsApi {
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to load role!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -628,9 +675,11 @@ class AuthRsApi {
 
 		if (response.ok) {
 			const data = await response.json();
+			showToast(new Toast('Role updated successfully!', 'info'));
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to update role!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -650,9 +699,11 @@ class AuthRsApi {
 
 		if (response.ok) {
 			const data = await response.json();
+			showToast(new Toast('Role deleted successfully!', 'info'));
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to delete role!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -674,6 +725,7 @@ class AuthRsApi {
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to load connections!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -693,9 +745,11 @@ class AuthRsApi {
 
 		if (response.ok) {
 			const data = await response.json();
+			showToast(new Toast('Connection unlinked successfully!', 'success'));
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to unlink connection!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -724,9 +778,11 @@ class AuthRsApi {
 
 		if (response.ok) {
 			const data = await response.json();
+			showToast(new Toast('OAuth application created successfully!', 'success'));
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to create OAuth application!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -748,6 +804,7 @@ class AuthRsApi {
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to load OAuth application!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -769,6 +826,7 @@ class AuthRsApi {
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to load OAuth applications!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -796,6 +854,7 @@ class AuthRsApi {
 			return data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to authorize application!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -819,9 +878,11 @@ class AuthRsApi {
 
 		if (response.ok) {
 			const data = await response.json();
+			showToast(new Toast('OAuth application updated successfully!', 'info'));
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to update OAuth application!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -841,9 +902,11 @@ class AuthRsApi {
 
 		if (response.ok) {
 			const data = await response.json();
+			showToast(new Toast('OAuth application deleted successfully!', 'info'));
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to delete OAuth application!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -872,6 +935,7 @@ class AuthRsApi {
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to load audit logs!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -893,6 +957,7 @@ class AuthRsApi {
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to load users!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -916,9 +981,11 @@ class AuthRsApi {
 
 		if (response.ok) {
 			const data = await response.json();
+			showToast(new Toast('Registration token created successfully!', 'success'));
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to create registration token!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -940,6 +1007,7 @@ class AuthRsApi {
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to load registration token!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -961,6 +1029,7 @@ class AuthRsApi {
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to load registration tokens!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -984,9 +1053,11 @@ class AuthRsApi {
 
 		if (response.ok) {
 			const data = await response.json();
+			showToast(new Toast('Registration token updated successfully!', 'info'));
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to update registration token!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
@@ -1006,9 +1077,11 @@ class AuthRsApi {
 
 		if (response.ok) {
 			const data = await response.json();
+			showToast(new Toast('Registration token deleted successfully!', 'info'));
 			return data.data;
 		} else {
 			console.error(await response.json());
+			showToast(new Toast('Failed to delete registration token!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
