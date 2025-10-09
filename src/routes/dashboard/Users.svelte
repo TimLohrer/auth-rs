@@ -253,8 +253,8 @@
     </Popup>
 {/if}
 
-{#if disableToTpPopup}
-    <Popup title="Disable MFA" onClose={() => disableToTpPopup = false}>
+{#if disableTotpPopup}
+    <Popup title="Disable MFA" onClose={() => disableTotpPopup = false}>
         <div class="flex flex-col items-center justify-center max-w-[350px]" style="margin-top: 20px; margin-bottom: 20px;">
             <p class="text-[14px] text-center opacity-50">Are you sure you want to disable MFA for "{disableTotpUser?.firstName} {disableTotpUser?.lastName}"?</p>
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -263,7 +263,7 @@
                 class="text-green-600 cursor-pointer rounded-md text-[18px]"
                 style="margin-top: 25px;"
                 on:click={() => {
-                    disableToTpPopup = false;
+                    disableTotpPopup = false;
                     api.disableMfaForUser(currentUser, disableTotpUser!._id)
                         .then(disabledTOTPUser => {
                             users[users.map(user => user._id).indexOf(disableTotpUser!._id)] = disabledTOTPUser;
@@ -397,7 +397,7 @@
                                 <!-- svelte-ignore a11y_no_static_element_interactions -->
                                 <div class="flex self-end" style="margin-right: 12.5px;" on:click={() => {
                                     disableTotpUser = user;
-                                    disableToTpPopup = true;
+                                    disableTotpPopup = true;
                                 }}>
                                     <LockOpen
                                         class="cursor-pointer hover:text-red-600 transition-all"
