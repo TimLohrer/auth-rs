@@ -6,7 +6,7 @@
 	import { Trash, Unlink } from "lucide-svelte";
 	import { onMount } from "svelte";
 	import Popup from '$lib/components/global/Popup.svelte';
-	import DateUtils from '$lib/dateUtils';
+	import DateUtils from '$lib/utils/dateUtils';
 	import Tooltip from 'sv-tooltip';
 	import { jsonAction } from '$lib/utils/jsonAttributes';
 

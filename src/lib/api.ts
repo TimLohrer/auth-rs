@@ -14,7 +14,7 @@ import type Settings from "./models/Settings";
 import type SettingsUpdates from "./models/SettingsUpdates";
 import User from './models/User';
 import type UserUpdates from "./models/UserUpdates";
-import PasskeyUtils from "./passkeyUtils";
+import PasskeyUtils from './utils/passkeyUtils';
 
 class AuthRsApi {
 	private baseUrl: string;

@@ -5,7 +5,7 @@
 	import { onMount } from "svelte";
 	import RoleUpdates from '$lib/models/RoleUpdates';
 	import Role from '$lib/models/Role';
-	import DateUtils from '$lib/dateUtils';
+	import DateUtils from '$lib/utils/dateUtils';
 	import TextInput from '$lib/components/global/TextInput.svelte';
 	import Tooltip from 'sv-tooltip';
 	import { jsonAction } from '$lib/utils/jsonAttributes';

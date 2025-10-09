@@ -10,7 +10,7 @@
 	import Passkey from '$lib/models/Passkey';
 	import { onMount } from 'svelte';
 	import Tooltip from 'sv-tooltip';
-	import DateUtils from '$lib/dateUtils';
+	import DateUtils from '$lib/utils/dateUtils';
 	import PasskeyUpdates from '$lib/models/PasskeyUpdates';
 	import { jsonAction } from '$lib/utils/jsonAttributes';
 
