@@ -9,11 +9,11 @@
             style="margin-bottom: {index * 60}px;"
         >
             {#if toast.type === 'success'}
-                <div class="bg-green-500 w-[5px] h-full flex border-[50%]"></div>
+                <div class="bg-green-500 w-[5px] h-full"></div>
             {:else if toast.type === 'error'}
-                <div class="bg-red-500 w-[5px] h-full flex border-[50%]"></div>
+                <div class="bg-red-500 w-[5px] h-full"></div>
             {:else if toast.type === 'info'}
-                <div class="bg-blue-500 w-[5px] h-full flex border-[50%]"></div>
+                <div class="bg-blue-500 w-[5px] h-full"></div>
             {/if}
             <p class="text-[14px]" style="margin: 10px;">{toast.message}</p>
         </div>
