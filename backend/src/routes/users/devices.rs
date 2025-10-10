@@ -121,17 +121,20 @@ pub async fn delete_all_user_devices(
         return json_response(HttpResponse::forbidden("Missing permissions!"));
     }
 
-    if user.totp_secret != None && data.totp.is_none() {
-        return json_response(HttpResponse::bad_request("TOTP code required"));
-    } else if user.totp_secret != None && data.totp.is_some() {
-        if !MfaHandler::verify_totp(&user.clone(), user.totp_secret.clone().unwrap(), data.totp.unwrap().as_str()).await {
-            return json_response(HttpResponse::unauthorized("Invalid TOTP code"));
-        }
-    } else if user.totp_secret == None && data.password.is_none() {
-        return json_response(HttpResponse::bad_request("Password required"));
-    } else if user.totp_secret == None && data.password.is_some() {
-        if user.verify_password(data.password.unwrap().as_str()).is_err() {
-            return json_response(HttpResponse::unauthorized("Invalid password"));
+    // only verify password/totp if the user is deleting their own devices
+    if req_entity.user_id == user_uuid {
+        if user.totp_secret != None && data.totp.is_none() {
+            return json_response(HttpResponse::bad_request("TOTP code required"));
+        } else if user.totp_secret != None && data.totp.is_some() {
+            if !MfaHandler::verify_totp(&user.clone(), user.totp_secret.clone().unwrap(), data.totp.unwrap().as_str()).await {
+                return json_response(HttpResponse::unauthorized("Invalid TOTP code"));
+            }
+        } else if user.totp_secret == None && data.password.is_none() {
+            return json_response(HttpResponse::bad_request("Password required"));
+        } else if user.totp_secret == None && data.password.is_some() {
+            if user.verify_password(data.password.unwrap().as_str()).is_err() {
+                return json_response(HttpResponse::unauthorized("Invalid password"));
+            }
         }
     }
 
