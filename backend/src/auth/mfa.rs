@@ -1,20 +1,16 @@
 use std::{collections::HashMap, time::Duration};
 
 use anyhow::Result;
-use dotenv::var;
 use mongodb::bson::{doc, Uuid};
-use regex::Regex;
 use rocket::tokio::{spawn, time::sleep};
 use rocket_db_pools::Connection;
 use totp_rs::{Algorithm, Secret, TOTP};
 
 use crate::{
-    db::{get_main_db, AuthRsDatabase},
-    models::{
+    db::{get_main_db, AuthRsDatabase}, models::{
         audit_log::{AuditLog, AuditLogAction, AuditLogEntityType},
         user::User,
-    },
-    MFA_SESSIONS,
+    }, utils::base_urls::get_application_name, MFA_SESSIONS
 };
 
 use super::AuthEntity;
@@ -45,21 +41,6 @@ impl MfaHandler {
         user.totp_secret.is_some()
     }
 
-    pub fn get_issuer_name() -> String {
-        let port_regex = Regex::new(r":[0-9]+").unwrap();
-
-        match var("PUBLIC_BASE_URL") {
-            Ok(url) => port_regex.replace_all(&url, "")
-                .replace("http://", "")
-                .replace("https://", "")
-                .split('/')
-                .next()
-                .unwrap_or("auth-rs")
-                .to_string(),
-            Err(_) => "auth-rs".to_string(),
-        }
-    }
-
     pub async fn start_enable_flow(user: &User) -> Result<Self, String> {
         let flow = Self {
             flow_id: Uuid::new(),
@@ -73,7 +54,7 @@ impl MfaHandler {
                     1,
                     30,
                     Secret::generate_secret().to_bytes().unwrap(),
-                    Some(Self::get_issuer_name()),
+                    Some(get_application_name()),
                     user.email.to_string(),
                 )
                 .unwrap(),
@@ -121,7 +102,7 @@ impl MfaHandler {
                 Secret::Encoded(user.totp_secret.as_ref().unwrap().to_string())
                     .to_bytes()
                     .unwrap(),
-                Some(Self::get_issuer_name()),
+                Some(get_application_name()),
                 user.email.to_string(),
             )
             .unwrap(),
@@ -169,7 +150,7 @@ impl MfaHandler {
             1,
             30,
             Secret::Encoded(secret).to_bytes().unwrap(),
-            Some(Self::get_issuer_name()),
+            Some(get_application_name()),
             user.email.to_string(),
         );
 
@@ -185,18 +166,14 @@ impl MfaHandler {
         req_user: AuthEntity,
         db: &Connection<AuthRsDatabase>,
     ) -> Result<User, String> {
-        let mut new_values =
-            HashMap::from([("totp_secret".to_string(), "***********".to_string())]);
-        let mut old_values =
+        let new_values =
+            HashMap::from([("totp_secret".to_string(), "null".to_string())]);
+        let old_values =
             HashMap::from([("totp_secret".to_string(), "***********".to_string())]);
 
         user.totp_secret = None;
 
-        let new_token = User::generate_token();
-        new_values.insert("token".to_string(), "***********".to_string());
-        old_values.insert("token".to_string(), "***********".to_string());
-
-        user.token = new_token;
+        user.devices.clear();
 
         let filter = doc! {
             "_id": user.id

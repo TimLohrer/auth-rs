@@ -48,3 +48,5 @@ vite.config.ts.timestamp-*
 
 # Idea
 .idea
+
+*.pem

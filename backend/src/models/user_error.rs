@@ -54,6 +54,9 @@ pub enum UserError {
 
     #[error("Registrations are closed")]
     RegistrationClosed,
+
+    #[error("Maximum number of devices reached")]
+    MaxDevicesReached,
 }
 
 // Implement conversion from UserError to HttpResponse
@@ -143,6 +146,11 @@ impl<T> From<UserError> for HttpResponse<T> {
             UserError::RegistrationClosed => HttpResponse {
                 status: 403,
                 message: "Registrations are closed".to_string(),
+                data: None,
+            },
+            UserError::MaxDevicesReached => HttpResponse {
+                status: 400,
+                message: "Maximum number of devices reached. Please contact your system administrator!".to_string(),
                 data: None,
             },
         }

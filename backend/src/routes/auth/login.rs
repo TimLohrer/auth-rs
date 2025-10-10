@@ -5,9 +5,13 @@ use rocket::{
     serde::{json::Json, Deserialize, Serialize},
 };
 use rocket_db_pools::Connection;
+use user_agent_parser::{UserAgent, OS};
 
+use crate::auth::IpAddr;
+use crate::errors::AppError;
 use crate::models::audit_log::{AuditLog, AuditLogAction, AuditLogEntityType};
 use crate::models::user::UserDTO;
+use crate::models::user_error::UserError;
 use crate::utils::response::json_response;
 use crate::{
     auth::mfa::MfaHandler,
@@ -38,6 +42,9 @@ pub struct LoginResponse {
 async fn process_login(
     db: &Connection<AuthRsDatabase>,
     login_data: LoginData,
+    user_agent: UserAgent<'_>,
+    os: OS<'_>,
+    ip: IpAddr
 ) -> ApiResult<LoginResponse> {
     let user = User::get_by_email(&login_data.email, db)
         .await
@@ -66,9 +73,18 @@ async fn process_login(
         });
     }
 
+    let device = match user.get_device(&db, os, user_agent, ip)
+        .await {
+            Ok(device) => device,
+            Err(err) => match err {
+                UserError::MaxDevicesReached => return Err(ApiError::AppError(AppError::DeviceError("Maximum number of devices reached. Please remove an existing device before adding a new one.".to_string()))),
+                _ => return Err(ApiError::AppError(AppError::DeviceError("Failed to get or create device.".to_string()))),
+            },
+        };
+
     Ok(LoginResponse {
         user: Some(user.to_dto(true)),
-        token: Some(user.token),
+        token: Some(device.token),
         mfa_required: false,
         mfa_flow_id: None,
     })
@@ -79,10 +95,13 @@ async fn process_login(
 pub async fn login(
     db: Connection<AuthRsDatabase>,
     data: Json<LoginData>,
+    user_agent: UserAgent<'_>,
+    os: OS<'_>,
+    ip: IpAddr
 ) -> (Status, Json<HttpResponse<LoginResponse>>) {
     let login_data = data.into_inner();
 
-    match process_login(&db, login_data).await {
+    match process_login(&db, login_data, user_agent, os, ip).await {
         Ok(response) => {
             if response.user.is_some() {
                 AuditLog::new(

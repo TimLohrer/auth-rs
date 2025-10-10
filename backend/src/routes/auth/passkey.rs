@@ -1,4 +1,7 @@
+use crate::auth::IpAddr;
 use crate::models::passkey::Passkey;
+use crate::models::user_error::UserError;
+use crate::utils::base_urls::{get_application_name, get_base_domain, get_raw_base_domain};
 use crate::AUTHENTICATIONS;
 use crate::{
     db::AuthRsDatabase,
@@ -10,10 +13,8 @@ use crate::{
     },
     utils::response::json_response,
 };
-use dotenv::var;
 use lazy_static::lazy_static;
 use mongodb::bson::Uuid;
-use regex::Regex;
 use rocket::{
     get,
     http::Status,
@@ -21,6 +22,7 @@ use rocket::{
     serde::{json::Json, Deserialize, Serialize},
 };
 use rocket_db_pools::Connection;
+use user_agent_parser::{UserAgent, OS};
 use std::sync::Arc;
 use url::Url;
 use webauthn_rs::prelude::{DiscoverableKey, PublicKeyCredential, RequestChallengeResponse};
@@ -29,58 +31,10 @@ use webauthn_rs::{Webauthn, WebauthnBuilder};
 // Static Webauthn instance with configurable values
 lazy_static! {
     static ref WEBAUTHN: Arc<Webauthn> = {
-        // Get configuration from environment variables or use defaults
-        let port_regex = Regex::new(r":[0-9]+").unwrap();
 
-        let rp_id = match var("PUBLIC_BASE_URL") {
-            Ok(url) => {
-                let raw_url = port_regex.replace_all(&url, "")
-                    .replace("http://", "")
-                    .replace("https://", "")
-                    .split('/')
-                    .next()
-                    .unwrap_or("localhost")
-                    .to_string();
-
-                if raw_url == "localhost" {
-                    "localhost".to_string()
-                } else {
-                    let parts: Vec<&str> = raw_url.split('.').collect();
-                    if parts.len() > 2 {
-                        parts[1..].join(".")
-                    } else {
-                        raw_url
-                    }
-                }
-            },
-            Err(_) => "localhost".to_string(),
-        };
-        let rp_origin_str = match var("PUBLIC_BASE_URL") {
-            Ok(url) => {
-                let scheme = url.split("://").next().unwrap_or("http");
-                let url_no_port = port_regex.replace_all(&url, "");
-                let host = Url::parse(&url_no_port)
-                    .ok()
-                    .and_then(|parsed| parsed.host_str().map(|h| h.to_string()))
-                    .unwrap_or_else(|| "localhost".to_string());
-                format!("{}://{}", scheme, host)
-            },
-            Err(_) => "localhost".to_string(),
-        };
-        let rp_name = {
-            let parts: Vec<&str> = rp_id.split('.').collect();
-            let name_part = if parts.len() >= 3 {
-                // Use second-to-last part for domains with 3+ components
-                parts[parts.len() - 2]
-            } else if parts.len() == 2 {
-                // Use first part for domains with 2 components
-                parts[0]
-            } else {
-                // Use the only part (e.g., "localhost")
-                parts[0]
-            };
-            format!("auth-rs-{}", name_part)
-        };
+        let rp_id = get_raw_base_domain();
+        let rp_origin_str = get_base_domain();
+        let rp_name = get_application_name();
         let rp_origin = Url::parse(&rp_origin_str)
             .expect("Invalid PUBLIC_BASE_URL -> Cannot parse URL for passkey origin");
 
@@ -166,11 +120,14 @@ async fn process_authenticate_start() -> ApiResult<PasskeyAuthenticateStartRespo
 pub async fn authenticate_finish(
     db: Connection<AuthRsDatabase>,
     data: Json<PasskeyAuthenticateFinishRequest>,
+    user_agent: UserAgent<'_>,
+    os: OS<'_>,
+    ip: IpAddr
 ) -> (
     Status,
     Json<HttpResponse<PasskeyAuthenticateFinishResponse>>,
 ) {
-    match process_authenticate_finish(db, data.into_inner()).await {
+    match process_authenticate_finish(db, data.into_inner(), user_agent, os, ip).await {
         Ok(response) => json_response(HttpResponse {
             status: 200,
             message: "Authentication successful".to_string(),
@@ -183,6 +140,9 @@ pub async fn authenticate_finish(
 async fn process_authenticate_finish(
     db: Connection<AuthRsDatabase>,
     data: PasskeyAuthenticateFinishRequest,
+    user_agent: UserAgent<'_>,
+    os: OS<'_>,
+    ip: IpAddr
 ) -> ApiResult<PasskeyAuthenticateFinishResponse> {
     // Get the authentication state
     let auth_state = AUTHENTICATIONS
@@ -230,9 +190,18 @@ async fn process_authenticate_finish(
     .await
     .ok();
 
+    let device = match user.get_device(&db, os, user_agent, ip)
+        .await {
+            Ok(device) => device,
+            Err(err) => match err {
+                UserError::MaxDevicesReached => return Err(ApiError::AppError(AppError::DeviceError("Maximum number of devices reached. Please remove an existing device before adding a new one.".to_string()))),
+                _ => return Err(ApiError::AppError(AppError::DeviceError("Failed to get or create device.".to_string()))),
+            },
+        };
+
     // Return success with user information and token
     Ok(PasskeyAuthenticateFinishResponse {
         user: user.to_dto(false),
-        token: user.token,
+        token: device.token,
     })
 }

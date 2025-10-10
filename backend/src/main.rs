@@ -6,26 +6,28 @@ mod models;
 mod routes;
 mod utils;
 
-use std::{collections::HashMap, env};
+use std::{collections::HashMap, env, sync::Arc};
 
 use auth::mfa::MfaHandler;
 use db::AuthRsDatabase;
+use auth::oidc::{OidcKeys};
 use dotenv::{dotenv, var};
 use errors::{AppError, AppResult};
 use models::{role::Role, settings::Settings, user::User};
 use mongodb::bson::{doc, Uuid};
 use rocket::{
     fairing::AdHoc,
-    http::Method::{Connect, Delete, Get, Patch, Post, Put},
+    http::Method::{Connect, Delete, Get, Patch, Post, Put, Head, Options},
     launch, routes,
     tokio::sync::Mutex,
 };
 use rocket_cors::{AllowedHeaders, AllowedOrigins, CorsOptions};
 use rocket_db_pools::{mongodb::Collection, Database};
 use routes::oauth::token::TokenOAuthData;
+use user_agent_parser::UserAgentParser;
 use webauthn_rs::prelude::{DiscoverableAuthentication, PasskeyRegistration};
 
-use crate::{migrations::DatabaseMigrator, models::audit_log::{AuditLog, AuditLogAction, AuditLogEntityType}};
+use crate::{auth::{jwk::{load_private_key, load_public_key}, jwt::ensure_keys_exist}, migrations::DatabaseMigrator, models::audit_log::{AuditLog, AuditLogAction, AuditLogEntityType}, utils::base_urls::get_application_name};
 
 // oauth codes stored in memory
 lazy_static::lazy_static! {
@@ -180,7 +182,7 @@ fn rocket() -> _ {
     let cors = CorsOptions::default()
         .allowed_origins(AllowedOrigins::all())
         .allowed_methods(
-            vec![Get, Post, Put, Patch, Delete, Connect]
+            vec![Get, Post, Put, Patch, Delete, Connect, Head, Options]
                 .into_iter()
                 .map(From::from)
                 .collect(),
@@ -193,7 +195,27 @@ fn rocket() -> _ {
     let fig = rocket::Config::figment()
         .merge(("databases.auth-rs-db.url", var("DATABASE_URL").expect("DATABASE_URL must be set")));
 
+    // Ensure keys exist (generate dev keys if necessary)
+    if let Err(e) = ensure_keys_exist() {
+        eprintln!("Failed to ensure JWT keys exist: {}", e);
+        panic!("Failed to ensure JWT keys");
+    }
+
+    // Load public key from the generated PEM
+    let oidc_public = match load_public_key() {
+        Ok(pk) => pk,
+        Err(e) => {
+            eprintln!("Failed to load OIDC public key: {}", e);
+            panic!("Missing OIDC public key");
+        }
+    };
+    let oidc_private = load_private_key().expect("private key parse");
+
+    let oidc_keys = OidcKeys { private: Arc::new(oidc_private), public: Arc::new(oidc_public), kid: get_application_name() };
+
     rocket::custom(fig)
+        .manage(oidc_keys)
+        .manage(UserAgentParser::from_path("data/ua_regex.yaml").unwrap())
         .attach(db::AuthRsDatabase::init())
         .attach(cors.to_cors().expect("Failed to create CORS fairing"))
         .attach(AdHoc::try_on_ignite("Default Values", |rocket| async {
@@ -213,6 +235,10 @@ fn rocket() -> _ {
                 }
             }
         }))
+        .mount(
+            "/",
+            routes![routes::well_known::well_known::discovery, routes::well_known::well_known::jwks],
+        )
         .mount(
             "/api",
             routes![

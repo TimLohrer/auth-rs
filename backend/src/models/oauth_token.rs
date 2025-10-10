@@ -1,9 +1,9 @@
 use super::{http_response::HttpResponse, oauth_scope::OAuthScope};
+use crate::auth::oidc::create_id_token;
 use crate::db::{get_main_db, AuthRsDatabase};
 use crate::errors::AppError;
 use anyhow::Result;
 use mongodb::bson::{doc, DateTime, Document, Uuid};
-use rand::Rng;
 use rocket::form::validate::Contains;
 use rocket::{
     futures::StreamExt,
@@ -13,6 +13,7 @@ use rocket_db_pools::{
     mongodb::{Collection, Database},
     Connection,
 };
+use serde_json::json;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use thiserror::Error;
 
@@ -78,21 +79,6 @@ pub struct OAuthToken {
 impl OAuthToken {
     pub const COLLECTION_NAME: &'static str = "oauth-tokens";
 
-    fn generate_token() -> String {
-        let mut rng = rand::rng();
-        let token: String = (0..128)
-            .map(|_| {
-                let idx = rng.random_range(0..62);
-                match idx {
-                    0..=9 => (b'0' + idx as u8) as char,
-                    10..=35 => (b'a' + (idx - 10) as u8) as char,
-                    _ => (b'A' + (idx - 36) as u8) as char,
-                }
-            })
-            .collect();
-        token
-    }
-
     /// Checks if the token is expired
     pub fn is_expired(&self) -> bool {
         let created_at = self.created_at.timestamp_millis() as u64;
@@ -116,9 +102,12 @@ impl OAuthToken {
     ) -> Result<Self, OAuthTokenError> {
         Ok(Self {
             id: Uuid::new(),
-            application_id,
-            user_id,
-            token: Self::generate_token(),
+            application_id: application_id.clone(),
+            user_id: user_id.clone(),
+            token: create_id_token(user_id, application_id, Some(json!({"scope": scope.clone()})))
+                .map_err(|err| {
+                    OAuthTokenError::InternalError(format!("Failed to create token: {}", err))
+                })?,
             scope,
             expires_in,
             created_at: DateTime::now(),
