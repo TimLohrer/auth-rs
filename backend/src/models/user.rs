@@ -462,11 +462,13 @@ impl User {
 
         match db.find_one(filter.clone(), None).await {
             Ok(Some(mut user)) => {
-                for device in user.devices.clone() {
+                for mut device in user.devices.clone() {
                     if (device.os.to_uppercase() == "UNKNOWN" || device.os == os)
                         && device.user_agent == user_agent
                         && (device.ip_address.to_uppercase() == "UNKNOWN" || device.ip_address == ip)
                     {
+                        device.created_at = DateTime::now();
+                        db.replace_one(filter, user, None).await.map_err(|err| UserError::DatabaseError(err.to_string()))?;
                         return Ok(device);
                     }
                 }
