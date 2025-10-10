@@ -451,10 +451,6 @@ impl User {
     ) -> Result<Device, UserError> {
         let db = Self::get_collection(connection);
 
-        println!("User Agent: {:?}", user_agent);
-        println!("OS: {:?}", os);
-        println!("IP: {:?}", ip.addr.clone());
-
         let os = os.name.unwrap_or_default().into_owned();
         let user_agent = user_agent.user_agent.unwrap_or_default().into_owned();
         let ip = ip.addr.unwrap_or_default();
