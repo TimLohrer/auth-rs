@@ -154,7 +154,7 @@ impl<'r> FromRequest<'r> for AuthEntity {
                     "Bearer" => {
                         let user_id = match verify_id_token(&token_value.to_owned()) {
                             Ok(data) => match Uuid::parse_str(&data.claims.sub) {
-                                Ok(uid) => uid,
+                                Ok(uuid) => uuid,
                                 Err(_) => return Outcome::Error((Status::InternalServerError, AuthError::DatabaseError))
                             },
                             Err(_) => return Outcome::Error((Status::Forbidden, AuthError::InvalidToken)),
@@ -162,7 +162,7 @@ impl<'r> FromRequest<'r> for AuthEntity {
 
                         match User::get_by_id_db_param(user_id, &db).await {
                             Ok(user) => {
-                                if user.disabled {
+                                if user.disabled || user.get_device_by_token(&token_value.to_owned()).is_none() {
                                     return Outcome::Error((Status::Forbidden, AuthError::Forbidden));
                                 }
 
@@ -234,7 +234,7 @@ impl<'r> FromRequest<'r> for OptionalAuthEntity {
 
                         match User::get_by_id_db_param(user_id, &db).await {
                             Ok(user) => {
-                                if user.disabled {
+                                if user.disabled || user.get_device_by_token(&token_value.to_owned()).is_none() {
                                     return Outcome::Success(OptionalAuthEntity::from_empty());
                                 }
 
