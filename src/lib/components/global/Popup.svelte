@@ -59,7 +59,7 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div class="absolute flex items-center justify-center top-0 left-0 w-full h-full z-[1000] overflow-hidden" on:mousedown={close}>
-    <div id="popup" class="flex flex-col gap-[7.5px] bg-black border-[2px] border-[#222] rounded-md" style="padding: 10px;" on:mousedown={e => e.stopPropagation()}>
+    <div id="popup" class="flex flex-col gap-[7.5px] bg-black border-[2px] border-[#222] max-h-[80%] max-w-[80%] rounded-md" style="padding: 10px;" on:mousedown={e => e.stopPropagation()}>
         <div class="flex flex-row min-w-[300px] items-center justify-between">
             <p>{title}</p>
             <!-- svelte-ignore a11y_no_static_element_interactions -->
