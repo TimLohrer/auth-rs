@@ -462,7 +462,10 @@ impl User {
         match db.find_one(filter.clone(), None).await {
             Ok(Some(mut user)) => {
                 for device in user.devices.clone() {
-                    if device.os == os && device.user_agent == user_agent && device.ip_address == ip {
+                    if (device.os.to_uppercase() == "UNKNOWN" || device.os == os)
+                        && device.user_agent == user_agent
+                        && (device.ip_address.to_uppercase() == "UNKNOWN" || device.ip_address == ip)
+                    {
                         return Ok(device);
                     }
                 }
