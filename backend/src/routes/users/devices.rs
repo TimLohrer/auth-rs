@@ -1,7 +1,7 @@
 use rocket::{delete, get, http::Status, serde::{self, json::Json}};
 use rocket_db_pools::Connection;
 
-use crate::{auth::{mfa::MfaHandler, AuthEntity, RequestHeaders}, db::AuthRsDatabase, models::{device::DeviceDTO, http_response::HttpResponse, user_error::UserError}, utils::{parse_uuid::parse_uuid, response::json_response}};
+use crate::{auth::{mfa::MfaHandler, AuthEntity}, db::AuthRsDatabase, models::{device::DeviceDTO, http_response::HttpResponse, user_error::UserError}, utils::{parse_uuid::parse_uuid, response::json_response}};
 
 #[allow(unused)]
 #[get("/users/<user_id>/devices")]
@@ -37,7 +37,6 @@ pub async fn get_all_user_devices(
 pub async fn delete_user_device(
     db: Connection<AuthRsDatabase>,
     req_entity: AuthEntity,
-    headers: RequestHeaders,
     user_id: &str,
     device_id: &str
 ) -> (Status, Json<HttpResponse<()>>) {
@@ -63,11 +62,6 @@ pub async fn delete_user_device(
 
     if !user.devices.iter().any(|d| d.id == device_uuid) {
         return json_response(HttpResponse::not_found("Device not found"));
-    }
-
-    let device = user.devices.iter().find(|d| d.id == device_uuid).unwrap();
-    if device.token == headers.headers.iter().find(|(name, _)| name.to_lowercase() == "authorization").map(|(_, value)| value.replace("Bearer ", "")).unwrap_or_default() {
-        return json_response(HttpResponse::bad_request("Cannot remove current device"));
     }
 
     match user.remove_device(device_uuid, &db).await {

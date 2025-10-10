@@ -277,6 +277,7 @@ impl<'r> FromRequest<'r> for IpAddr {
     }
 }
 
+#[allow(unused)]
 pub struct RequestHeaders {
     pub headers: Vec<(String, String)>
 }
