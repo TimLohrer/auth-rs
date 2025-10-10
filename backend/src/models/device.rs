@@ -6,7 +6,6 @@ use crate::auth::oidc::create_id_token;
 #[serde(crate = "rocket::serde")]
 #[serde(rename_all = "camelCase")]
 pub struct Device {
-    #[serde(rename = "_id")]
     pub id: Uuid,
     pub token: String,
     pub os: String,
@@ -19,7 +18,6 @@ pub struct Device {
 #[serde(crate = "rocket::serde")]
 #[serde(rename_all = "camelCase")]
 pub struct DeviceDTO {
-    #[serde(rename = "_id")]
     pub id: Uuid,
     pub os: String,
     pub user_agent: String,
