@@ -29,6 +29,15 @@ class AuthStateManager {
 		return null;
 	}
 
+	getActiveDeviceId(): string | null {
+		if (this.getToken()) {
+			const payload = this.getToken()!.split('.')[1];
+			const decoded = JSON.parse(atob(payload));
+			return decoded.data.deviceId || null;
+		}
+		return null;
+	}
+
 	async handlePageLoad(params: string[] | null = null): Promise<[AuthRsApi, User] | null> {
 		const token = this.getToken();
 		if (token) {
