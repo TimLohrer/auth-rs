@@ -1,3 +1,5 @@
+import type Device from './Device';
+
 export default class User {
 	_id: string;
 	email: string;
@@ -5,6 +7,7 @@ export default class User {
 	lastName: string;
 	roles: string[];
 	mfa: boolean;
+	devices: Device[];
 	dataStorage: Record<string, any> | null;
 	disabled: boolean;
 	createdAt: any;
@@ -16,6 +19,7 @@ export default class User {
 		lastName: string,
 		roles: string[],
 		mfa: boolean,
+		devices: Device[],
 		dataStorage: Record<string, any> | null,
 		disabled: boolean,
 		createdAt: any
@@ -26,6 +30,7 @@ export default class User {
 		this.lastName = lastName;
 		this.roles = roles;
 		this.mfa = mfa;
+		this.devices = devices;
 		this.dataStorage = dataStorage;
 		this.disabled = disabled;
 		this.createdAt = createdAt;
