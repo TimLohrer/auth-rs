@@ -485,6 +485,25 @@ impl User {
     }
 
     #[allow(unused)]
+    pub async fn cleanup_expired_devices(
+        &self,
+        connection: &Connection<AuthRsDatabase>,
+    ) -> Result<(), UserError> {
+        let db = Self::get_collection(connection);
+
+        for device in &self.devices {
+            match verify_id_token(&device.token) {
+                Ok(_) => {},
+                Err(_) => {
+                    let _ = self.remove_device(device.id, connection).await;
+                },
+            }
+        }
+
+        Ok(())
+    }
+
+    #[allow(unused)]
     pub async fn delete(
         &self,
         connection: &Connection<AuthRsDatabase>,

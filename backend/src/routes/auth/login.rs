@@ -73,6 +73,8 @@ async fn process_login(
         });
     }
 
+    user.cleanup_expired_devices(&db).await.ok();
+
     let device = match user.get_device(&db, os, user_agent, ip)
         .await {
             Ok(device) => device,

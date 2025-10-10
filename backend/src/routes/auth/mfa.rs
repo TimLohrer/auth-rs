@@ -99,6 +99,8 @@ async fn process_mfa(
             },
         ))
     } else {
+        flow.user.cleanup_expired_devices(&db).await.ok();
+
         let device = match flow.user.get_device(&db, os, user_agent, ip)
         .await {
             Ok(device) => device,
