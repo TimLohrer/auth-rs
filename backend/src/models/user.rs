@@ -4,6 +4,7 @@ use super::user_error::{UserError, UserResult};
 use super::{
     http_response::HttpResponse, oauth_application::OAuthApplication, oauth_token::OAuthToken,
 };
+use crate::auth::jwt::verify_id_token;
 use crate::auth::{AuthEntity, IpAddr};
 use crate::models::device::{Device, DeviceDTO};
 use crate::models::oauth_scope::{OAuthScope, ScopeActions};
@@ -481,6 +482,69 @@ impl User {
             },
             Ok(None) => Err(UserError::NotFound(Uuid::new())),
             Err(err) => Err(UserError::DatabaseError(err.to_string())),
+        }
+    }
+
+    #[allow(unused)]
+    pub fn get_device_by_token(&self, token: &str) -> Option<Device> {
+        for device in &self.devices {
+            if device.token == token {
+                return Some(device.clone());
+            }
+        }
+        None
+    }
+
+    #[allow(unused)]
+    pub async fn remove_device(
+        &self,
+        device_id: Uuid,
+        connection: &Connection<AuthRsDatabase>,
+    ) -> Result<(), UserError> {
+        let db = Self::get_collection(connection);
+        
+        let filter = doc! {
+            "_id": self.id
+        };
+
+        let update = doc! {
+            "$pull": {
+                "devices": { "id": device_id }
+            }
+        };
+
+        match db.update_one(filter, update, None).await {
+            Ok(_) => Ok(()),
+            Err(err) => Err(UserError::DatabaseError(format!(
+                "Error removing device: {:?}",
+                err
+            ))),
+        }
+    }
+
+    #[allow(unused)]
+    pub async fn remove_all_devices(
+        &self,
+        connection: &Connection<AuthRsDatabase>,
+    ) -> Result<(), UserError> {
+        let db = Self::get_collection(connection);
+        
+        let filter = doc! {
+            "_id": self.id
+        };
+
+        let update = doc! {
+            "$set": {
+                "devices": []
+            }
+        };
+
+        match db.update_one(filter, update, None).await {
+            Ok(_) => Ok(()),
+            Err(err) => Err(UserError::DatabaseError(format!(
+                "Error removing all devices: {:?}",
+                err
+            ))),
         }
     }
 

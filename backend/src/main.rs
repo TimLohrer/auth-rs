@@ -266,6 +266,9 @@ fn rocket() -> _ {
                 routes::users::get_storage::get_user_data_storage_key,
                 routes::users::update_storage::update_user_data_storage_key,
                 routes::users::update_storage::delete_user_data_storage_key,
+                routes::users::devices::get_all_user_devices,
+                routes::users::devices::delete_user_device,
+                routes::users::devices::delete_all_user_devices,
                 routes::users::delete::delete_user,
                 // Role Routes
                 routes::roles::create::create_role,

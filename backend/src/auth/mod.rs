@@ -277,3 +277,15 @@ impl<'r> FromRequest<'r> for IpAddr {
     }
 }
 
+pub struct RequestHeaders {
+    pub headers: Vec<(String, String)>
+}
+
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for RequestHeaders {
+    type Error = (Status, ());
+
+    async fn from_request(request: &'r Request<'_>) -> Outcome<RequestHeaders, (Status, Self::Error), Status> {
+        Outcome::Success(RequestHeaders { headers: request.headers().iter().map(|h| (h.name().to_string(), h.value().to_string())).collect() } )
+    }
+}
