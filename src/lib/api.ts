@@ -1,17 +1,18 @@
 
 import AuthStateManager from "./auth";
 import type { AuditLog } from "./models/AuditLog";
-import type OAuthApplication from "./models/OAuthApplication";
-import type OAuthApplicationUpdates from "./models/OAuthApplicationUpdates";
-import type OAuthConnection from "./models/OAuthConnection";
-import Passkey from "./models/Passkey";
-import type PasskeyUpdates from "./models/PasskeyUpdates";
-import type RegistrationToken from "./models/RegistrationToken";
-import type RegistrationTokenUpdates from "./models/RegistrationTokenUpdates";
-import type Role from "./models/Role";
-import type RoleUpdates from "./models/RoleUpdates";
-import type Settings from "./models/Settings";
-import type SettingsUpdates from "./models/SettingsUpdates";
+import type Device from './models/Device';
+import type OAuthApplication from './models/OAuthApplication';
+import type OAuthApplicationUpdates from './models/OAuthApplicationUpdates';
+import type OAuthConnection from './models/OAuthConnection';
+import Passkey from './models/Passkey';
+import type PasskeyUpdates from './models/PasskeyUpdates';
+import type RegistrationToken from './models/RegistrationToken';
+import type RegistrationTokenUpdates from './models/RegistrationTokenUpdates';
+import type Role from './models/Role';
+import type RoleUpdates from './models/RoleUpdates';
+import type Settings from './models/Settings';
+import type SettingsUpdates from './models/SettingsUpdates';
 import { Toast } from './models/Toast';
 import User from './models/User';
 import type UserUpdates from './models/UserUpdates';
@@ -1081,6 +1082,84 @@ class AuthRsApi {
 		} else {
 			console.error(await response.json());
 			showToast(new Toast('Failed to delete registration token!', 'error'));
+			throw new Error(`(${response.status}): ${response.statusText}`);
+		}
+	}
+
+	async getUserDevices(userId: string): Promise<Device[]> {
+		if (!this.token) {
+			throw new Error('No token');
+		}
+
+		const response = await fetch(`${this.baseUrl}/users/${userId}/devices`, {
+			method: 'GET',
+			headers: {
+				Authorization: `Bearer ${this.token}`
+			}
+		});
+
+		if (response.ok) {
+			const data = await response.json();
+			return data.data;
+		} else {
+			console.error(await response.json());
+			showToast(new Toast('Failed to load user devices!', 'error'));
+			throw new Error(`(${response.status}): ${response.statusText}`);
+		}
+	}
+
+	async deleteUserDevice(userId: string, deviceId: string): Promise<null> {
+		if (!this.token) {
+			throw new Error('No token');
+		}
+
+		const response = await fetch(`${this.baseUrl}/users/${userId}/devices/${deviceId}`, {
+			method: 'DELETE',
+			headers: {
+				Authorization: `Bearer ${this.token}`
+			}
+		});
+
+		if (response.ok) {
+			const data = await response.json();
+			showToast(new Toast('Device deleted successfully!', 'info'));
+			return data.data;
+		} else {
+			console.error(await response.json());
+			showToast(new Toast('Failed to delete device!', 'error'));
+			throw new Error(`(${response.status}): ${response.statusText}`);
+		}
+	}
+
+	async deleteAllDevicesForUser(
+		userId: string,
+		password: string | null,
+		totp: string | null
+	): Promise<null> {
+		if (!this.token) {
+			throw new Error('No token');
+		}
+
+		const response = await fetch(`${this.baseUrl}/users/${userId}/devices`, {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${this.token}`
+			},
+			body: JSON.stringify({ password, totp })
+		});
+
+		if (response.ok) {
+			const data = await response.json();
+			showToast(new Toast('All devices deleted successfully!', 'info'));
+			const authStateManager = new AuthStateManager(this.baseUrl);
+			if (userId === authStateManager.getActiveUserId()) {
+				authStateManager.logout();
+			}
+			return data.data;
+		} else {
+			console.error(await response.json());
+			showToast(new Toast('Failed to delete devices!', 'error'));
 			throw new Error(`(${response.status}): ${response.statusText}`);
 		}
 	}
