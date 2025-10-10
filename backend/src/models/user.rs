@@ -253,19 +253,6 @@ impl User {
         }
     }
 
-    // #[allow(unused)]
-    // pub async fn get_full_by_token(token: String, mut db: &Database) -> UserResult<User> {
-    //     let db = db.collection(Self::COLLECTION_NAME);
-
-    //     let filter = doc! { "devices": { "$elemMatch": { "token": token.clone() } } };
-    //     match db.find_one(filter, None).await {
-    //         Ok(Some(user)) => Ok(user),
-    //         //TODO: Not sure if we should return a placeholder UUID here
-    //         Ok(None) => Err(UserError::NotFound(Uuid::new())), // Using a placeholder UUID
-    //         Err(err) => Err(UserError::DatabaseError(err.to_string())),
-    //     }
-    // }
-
     #[allow(unused)]
     pub async fn get_by_id(id: Uuid, connection: &Connection<AuthRsDatabase>) -> UserResult<User> {
         let db = Self::get_collection(connection);
