@@ -6,7 +6,7 @@ use rsa::traits::PublicKeyParts;
 use rsa::{RsaPrivateKey, RsaPublicKey};
 use std::fs;
 
-use crate::auth::jwt::{DEFAULT_PRIV_KEY, DEFAULT_PUB_KEY};
+use crate::auth::jwt::{ensure_keys_exist, DEFAULT_PRIV_KEY, DEFAULT_PUB_KEY};
 
 #[derive(Serialize)]
 #[serde(crate = "rocket::serde")]
@@ -22,6 +22,7 @@ pub struct Jwk {
 }
 
 pub fn load_private_key() -> anyhow::Result<RsaPrivateKey> {
+    ensure_keys_exist()?;
     let pem = fs::read_to_string(DEFAULT_PRIV_KEY)?;
     let key = RsaPrivateKey::from_pkcs1_pem(&pem)?;
     Ok(key)
@@ -42,6 +43,7 @@ pub fn jwk_from_pubkey(pubkey: &RsaPublicKey, kid: &str) -> Jwk {
 }
 
 pub fn load_public_key() -> anyhow::Result<RsaPublicKey> {
+    ensure_keys_exist()?;
     let pem = fs::read_to_string(DEFAULT_PUB_KEY)?;
     let key = RsaPublicKey::from_pkcs1_pem(&pem)?;
     Ok(key)

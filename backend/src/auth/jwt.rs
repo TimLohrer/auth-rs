@@ -47,11 +47,13 @@ pub fn ensure_keys_exist() -> anyhow::Result<()> {
 }
 
 pub fn load_private_key_pem() -> anyhow::Result<String> {
+    ensure_keys_exist()?;
     let pem = fs::read_to_string(DEFAULT_PRIV_KEY)?;
     Ok(pem)
 }
 
 pub fn load_public_key_pem() -> anyhow::Result<String> {
+    ensure_keys_exist()?;
     let pem = fs::read_to_string(DEFAULT_PUB_KEY)?;
     Ok(pem)
 }
