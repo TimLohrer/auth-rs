@@ -85,10 +85,18 @@
                 class="text-red-600 cursor-pointer rounded-md text-[18px]"
                 class:opacity-50={password.length == 0 && !user.mfa}
                 style="margin-top: 25px;"
-                on:click={user.mfa || password.length > 0 ? () => {
-                    logoutAllDevicesPopup = false;
-                    logoutAll(null, null);
-                } : () => {}}
+                on:click={user.mfa
+                    ? () => {
+                        logoutAllDevicesPopup = false;
+                        // TOTP is handled by TotpInput above
+                    }
+                    : password.length > 0
+                        ? () => {
+                            logoutAllDevicesPopup = false;
+                            logoutAll(password, null);
+                        }
+                        : () => {}
+                }
             >Logout</p>
         </div>
     </Popup>
