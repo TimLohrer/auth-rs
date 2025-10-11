@@ -25,7 +25,7 @@
                 return "You";
             } else if (users.find(u => u._id == entityId) != null) {;
                 const u = users.find(u => u._id == entityId)!;
-                return `${u.firstName}${user.lastName.length > 0 ? ' ' : ''}${u.lastName}`;
+                return `${u.firstName}${u.lastName.length > 0 ? ' ' : ''}${u.lastName}`;
             } else {
                 return entityId;
             }

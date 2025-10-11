@@ -272,22 +272,22 @@ async fn update_user_internal(
     let mut update = UserUpdate::new(user);
 
     // Apply updates
-    if let Some(email) = data.email {
-        update.update_email(email, &db).await?;
-    }
-
-    if let Some(password) = data.password {
-        update.update_password(password)?;
+    if !req_entity.user.as_ref().unwrap().is_system_admin() {
+        if let Some(email) = data.email {
+            update.update_email(email, &db).await?;
+        }
+        if let Some(password) = data.password {
+            update.update_password(password)?;
+        }
+        if let Some(disabled) = data.disabled {
+            update.update_disabled(disabled, req_user)?;
+        }
     }
 
     update.update_name(data.first_name, data.last_name)?;
 
     if let Some(roles) = data.roles {
         update.update_roles(roles, &db, req_user).await?;
-    }
-
-    if let Some(disabled) = data.disabled {
-        update.update_disabled(disabled, req_user)?;
     }
 
     // Save changes

@@ -51,11 +51,15 @@
 {#if editUserPopup}
     <Popup title="Edit User" onClose={() => editUserPopup = false}>
         <div class="flex flex-col items-center justify-center min-w-[350px]">
-            <TextInput type="email" label="Email" bind:value={editUserEmail} autocomplete="email" autofocus />
+            {#if !User.isSystemAdmin(user)}
+                <TextInput type="email" label="Email" bind:value={editUserEmail} autocomplete="email" autofocus />
+            {/if}
             <TextInput label="First Name" bind:value={editUserFirstName} autocomplete="name" />
             <TextInput label="Last Name" bind:value={editUserLastName} autocomplete="family-name" />
-            <TextInput type="password" label="Password" bind:value={editUserPassword} autocomplete="new-password" />
-            <TextInput type="password" label="Confirm Password" bind:value={editUserPasswordConfirm} autocomplete="new-password" />
+            {#if !User.isSystemAdmin(user)}
+                <TextInput type="password" label="Password" bind:value={editUserPassword} autocomplete="new-password" />
+                <TextInput type="password" label="Confirm Password" bind:value={editUserPasswordConfirm} autocomplete="new-password" />
+            {/if}
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
             <!-- svelte-ignore a11y_click_events_have_key_events -->
             <p
