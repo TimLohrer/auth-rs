@@ -12,6 +12,7 @@ use totp_rs::TOTP;
 use super::login::LoginResponse;
 use crate::auth::IpAddr;
 use crate::errors::AppError;
+use crate::models::device::Device;
 use crate::models::user_error::UserError;
 use crate::utils::response::json_response;
 use crate::{
@@ -40,7 +41,7 @@ async fn process_mfa(
     user_agent: UserAgent<'_>,
     os: OS<'_>,
     ip: IpAddr
-) -> ApiResult<(String, LoginResponse)> {
+) -> ApiResult<(String, LoginResponse, Option<Device>)> {
     let mfa_sessions = MFA_SESSIONS.lock().await;
     let cloned_sessions = mfa_sessions.clone();
 
@@ -97,6 +98,7 @@ async fn process_mfa(
                 mfa_required: false,
                 mfa_flow_id: None,
             },
+            None
         ))
     } else {
         let mut user = flow.user.clone();
@@ -116,10 +118,11 @@ async fn process_mfa(
             "MFA complete".to_string(),
             LoginResponse {
                 user: Some(user.to_dto(true)),
-                token: Some(device.token),
+                token: Some(device.token.clone()),
                 mfa_required: false,
                 mfa_flow_id: None,
             },
+            Some(device)
         ))
     }
 }
@@ -136,7 +139,7 @@ pub async fn mfa(
     let mfa_data = data.into_inner();
 
     match process_mfa(&db, mfa_data, user_agent, os, ip).await {
-        Ok((message, response)) => {
+        Ok((message, response, device)) => {
             if message == "MFA complete" {
                 AuditLog::new(
                     response.user.clone().unwrap().id.to_string(),
@@ -145,7 +148,7 @@ pub async fn mfa(
                     "MFA login successful.".to_string(),
                     response.user.clone().unwrap().id,
                     None,
-                    None,
+                    Some(HashMap::from([("userAgent".to_string(), device.clone().unwrap().user_agent), ("os".to_string(), device.clone().unwrap().os), ("ip".to_string(), device.unwrap().ip_address)])),
                 )
                 .insert(&db)
                 .await

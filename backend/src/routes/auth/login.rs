@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use mongodb::bson::Uuid;
 use rocket::http::Status;
 use rocket::{
@@ -10,6 +12,7 @@ use user_agent_parser::{UserAgent, OS};
 use crate::auth::IpAddr;
 use crate::errors::AppError;
 use crate::models::audit_log::{AuditLog, AuditLogAction, AuditLogEntityType};
+use crate::models::device::Device;
 use crate::models::user::UserDTO;
 use crate::models::user_error::UserError;
 use crate::utils::response::json_response;
@@ -45,7 +48,7 @@ async fn process_login(
     user_agent: UserAgent<'_>,
     os: OS<'_>,
     ip: IpAddr
-) -> ApiResult<LoginResponse> {
+) -> ApiResult<(LoginResponse, Option<Device>)> {
     let mut user = User::get_by_email(&login_data.email, db)
         .await
         .map_err(|err| ApiError::InternalError(err.to_string()))?;
@@ -65,12 +68,12 @@ async fn process_login(
             .await
             .map_err(|err| ApiError::InternalError(format!("Failed to start MFA flow: {}", err)))?;
 
-        return Ok(LoginResponse {
+        return Ok((LoginResponse {
             user: None,
             token: None,
             mfa_required: true,
             mfa_flow_id: Some(mfa_flow.flow_id),
-        });
+        }, None));
     }
 
     user.cleanup_expired_devices(&db).await.ok();
@@ -84,12 +87,12 @@ async fn process_login(
             },
         };
 
-    Ok(LoginResponse {
+    Ok((LoginResponse {
         user: Some(user.to_dto(true)),
-        token: Some(device.token),
+        token: Some(device.token.clone()),
         mfa_required: false,
         mfa_flow_id: None,
-    })
+    }, Some(device)))
 }
 
 #[allow(unused)]
@@ -105,27 +108,27 @@ pub async fn login(
 
     match process_login(&db, login_data, user_agent, os, ip).await {
         Ok(response) => {
-            if response.user.is_some() {
+            if response.0.user.is_some() {
                 AuditLog::new(
-                    response.user.clone().unwrap().id.to_string(),
+                    response.0.user.clone().unwrap().id.to_string(),
                     AuditLogEntityType::User,
                     AuditLogAction::Login,
                     "Login successful.".to_string(),
-                    response.user.clone().unwrap().id,
+                    response.0.user.clone().unwrap().id,
                     None,
-                    None,
+                    Some(HashMap::from([("userAgent".to_string(), response.1.clone().unwrap().user_agent), ("os".to_string(), response.1.clone().unwrap().os), ("ip".to_string(), response.1.unwrap().ip_address)])),
                 )
                 .insert(&db)
                 .await
                 .ok();
             }
 
-            let message = if response.mfa_required {
+            let message = if response.0.mfa_required {
                 "MFA required"
             } else {
                 "Login successful"
             };
-            json_response(HttpResponse::success(message, response))
+            json_response(HttpResponse::success(message, response.0))
         }
         Err(err) => json_response(err.into()),
     }
