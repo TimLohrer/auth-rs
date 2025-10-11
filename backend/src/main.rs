@@ -236,13 +236,11 @@ fn rocket() -> _ {
             }
         }))
         .mount(
-            "/",
-            routes![routes::well_known::well_known::discovery, routes::well_known::well_known::jwks],
-        )
-        .mount(
             "/api",
             routes![
                 routes::base::base,
+                routes::well_known::well_known::discovery,
+                routes::well_known::well_known::jwks,
                 // Settings routes
                 routes::settings::get::get_settings,
                 routes::settings::update::update_settings,
