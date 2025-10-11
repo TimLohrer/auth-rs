@@ -115,13 +115,13 @@
                 use:jsonAction={{ data: device, title: "Device Data" }}
             >
                 <div class="flex flex-row justify-between w-full">
-                    <p class="text-[20px] font-bold h-[20px]">{device.os}</p>
+                    <p class="text-[20px] font-bold h-[20px]">{(!device.os || device.os.toUpperCase() == 'OTHER' ? device.userAgent : device.os).substring(0, 22)}</p>
                     <div class="flex flex-row">
                         {#if device.id != new AuthStateManager($apiUrl).getActiveDeviceId()}
                             <Tooltip tip={"Remove Device"} bottom color="var(--color-red-600)">
                                 <!-- svelte-ignore a11y_click_events_have_key_events -->
                                 <!-- svelte-ignore a11y_no_static_element_interactions -->
-                                <div class="flex self-end" on:click={() => {
+                                <div class="flex self-end" style="margin-left: 5px;" on:click={() => {
                                     removeDevice = device;
                                     removeDevicePopup = true;
                                 }}>
@@ -135,7 +135,7 @@
                             <Tooltip tip={"Logout"} bottom color="var(--color-red-600)">
                                 <!-- svelte-ignore a11y_click_events_have_key_events -->
                                 <!-- svelte-ignore a11y_no_static_element_interactions -->
-                                <div class="flex self-end" on:click={() => {
+                                <div class="flex self-end" style="margin-left: 5px;" on:click={() => {
                                     removeDevice = device;
                                     removeDevicePopup = true;
                                 }}>
