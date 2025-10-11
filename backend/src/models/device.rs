@@ -12,7 +12,7 @@ pub struct Device {
     pub os: String,
     pub user_agent: String,
     pub ip_address: String,
-    pub created_at: DateTime,
+    pub created_at: i64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -23,7 +23,7 @@ pub struct DeviceDTO {
     pub os: String,
     pub user_agent: String,
     pub ip_address: String,
-    pub created_at: DateTime,
+    pub created_at: i64,
 }
 
 impl Device {
@@ -35,7 +35,7 @@ impl Device {
             os: os.unwrap_or_else(|| "Unknown".to_string()),
             user_agent: user_agent.to_string(),
             ip_address: ip_adress.unwrap_or_else(|| "Unknown".to_string()),
-            created_at: DateTime::now(),
+            created_at: DateTime::now().timestamp_millis(),
         }
     }
 

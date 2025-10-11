@@ -456,37 +456,38 @@ impl User {
         let os = os.name.unwrap_or_default().into_owned();
         let user_agent = user_agent.user_agent.unwrap_or_default().into_owned();
         let ip = ip.addr.unwrap_or_default();
-        
-        let filter = doc! {
-            "_id": self.id.clone()
-        };
 
-        match db.find_one(filter.clone(), None).await {
-            Ok(Some(mut user)) => {
-                for mut device in user.devices.clone() {
-                    if (device.os.to_uppercase() == "UNKNOWN" || device.os == os)
-                        && device.user_agent == user_agent
-                        && (device.ip_address.to_uppercase() == "UNKNOWN" || device.ip_address == ip)
-                    {
-                        device.created_at = DateTime::now();
-                        db.replace_one(filter, user, None).await.map_err(|err| UserError::DatabaseError(err.to_string()))?;
-                        return Ok(device);
+        for mut device in self.devices.clone() {
+            if (device.os.to_uppercase() == "UNKNOWN" || device.os == os)
+                && device.user_agent == user_agent
+                && (device.ip_address.to_uppercase() == "UNKNOWN" || device.ip_address == ip)
+            {
+                device.created_at = DateTime::now().timestamp_millis();
+
+                let filter = doc! {
+                    "_id": self.id,
+                    "devices.id": device.id
+                };
+
+                let update = doc! {
+                    "$set": {
+                        "devices.$.createdAt": device.created_at
                     }
-                }
-                
-                if user.devices.len() >= MAX_DEVICES {
-                    return Err(UserError::MaxDevicesReached);
-                }
+                };
 
-                let device = Device::new(self.id.clone(), if os.is_empty() { None } else { Some(os) }, user_agent, if ip.is_empty() { None } else { Some(ip) });
-                user.devices.push(device.clone());
-                db.replace_one(filter, user, None).await.map_err(|err| UserError::DatabaseError(err.to_string()))?;
-                &self.devices.push(device.clone());
-                Ok(device)
-            },
-            Ok(None) => Err(UserError::NotFound(Uuid::new())),
-            Err(err) => Err(UserError::DatabaseError(err.to_string())),
+                db.update_one(filter, update, None).await.map_err(|err| UserError::DatabaseError(err.to_string()))?;
+                return Ok(device);
+            }
         }
+        
+        if &self.devices.len() >= &MAX_DEVICES {
+            return Err(UserError::MaxDevicesReached);
+        }
+
+        let device = Device::new(self.id.clone(), if os.is_empty() { None } else { Some(os) }, user_agent, if ip.is_empty() { None } else { Some(ip) });
+        &self.devices.push(device.clone());
+        &self.update(&connection).await.map_err(|err| UserError::DatabaseError(err.to_string()))?;
+        Ok(device)
     }
 
     #[allow(unused)]

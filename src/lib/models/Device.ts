@@ -4,7 +4,7 @@ export default class Device {
 	userAgent: string;
 	os: string | null;
 	ipAdress: string | null;
-	createdAt: any;
+	createdAt: number;
 
 	constructor(
 		id: string,
@@ -12,7 +12,7 @@ export default class Device {
 		userAgent: string,
 		os: string | null,
 		ipAdress: string | null,
-		createdAt: any
+		createdAt: number
 	) {
 		this.id = id;
 		this.token = token;
@@ -23,7 +23,6 @@ export default class Device {
 	}
 
 	static getCreatedAt(device: Device): Date {
-		// @ts-ignore
-		return new Date(parseInt(device.createdAt.$date.$numberLong) ?? 0);
+		return new Date(device.createdAt);
 	}
 }
