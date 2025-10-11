@@ -30,7 +30,7 @@ pub async fn get_all_user_devices(
     json_response(HttpResponse {
         status: 200,
         message: "User devices fetched".to_string(),
-        data: Some(user.devices.clone().into_iter().map(|d| d.to_dto()).collect::<Vec<DeviceDTO>>()),
+        data: Some(user.devices.iter().map(|d| d.to_dto()).collect::<Vec<DeviceDTO>>()),
     })
 }
 

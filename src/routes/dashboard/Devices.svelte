@@ -70,7 +70,7 @@
             <p class="text-[14px] text-center opacity-50">Are you sure you want to logout all devices? This will log you out of your current session as well.</p>
             <div class="flex flex-col items-center w-full" style="margin-top: 25px;">
                 {#if user.mfa}
-                    <p class="text-[14px] opacity-50" style="margin-bottom: 10px;">Please cofirm your MFA code:</p>
+                    <p class="text-[14px] opacity-50" style="margin-bottom: 10px;">Please confirm your MFA code:</p>
                     <TotpInput totp={[]} disabled={false} completeTotp={async (totp) => {
                         logoutAllDevicesPopup = false;
                         return logoutAll(null, totp);

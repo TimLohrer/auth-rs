@@ -484,9 +484,9 @@ impl User {
             return Err(UserError::MaxDevicesReached);
         }
 
-        let device = Device::new(self.id.clone(), if os.is_empty() { None } else { Some(os) }, user_agent, if ip.is_empty() { None } else { Some(ip) });
-        &self.devices.push(device.clone());
-        &self.update(&connection).await.map_err(|err| UserError::DatabaseError(err.to_string()))?;
+        let device = Device::new(self.id.clone(), if os.is_empty() { None } else { Some(os) }, user_agent, if ip.is_empty() { None } else { Some(ip) })?;
+        self.devices.push(device.clone());
+        self.update(&connection).await.map_err(|err| UserError::DatabaseError(err.to_string()))?;
         Ok(device)
     }
 
