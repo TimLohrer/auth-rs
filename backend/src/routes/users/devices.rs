@@ -62,7 +62,7 @@ pub async fn delete_user_device(
         return json_response(HttpResponse::forbidden("Missing permissions!"));
     }
 
-    let opt_device = user.devices.iter().find(|d| &d.id.to_string() == device_id);
+    let opt_device = user.devices.iter().find(|d| d.id == device_uuid);
 
     if opt_device.is_none() {
         return json_response(HttpResponse::not_found("Device not found"));
