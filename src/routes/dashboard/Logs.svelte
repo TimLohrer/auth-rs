@@ -33,6 +33,8 @@
                 }).catch((err) => {
                     console.error(err);
                 });
+            } else if (!isGlobalLogs && users.length <= 0) {
+                users = [user];
             }
             if (isGlobalLogs && roles.length <= 0) {
                 api.getAllRoles().then((newRoles) => {
