@@ -27,14 +27,14 @@ pub struct DeviceDTO {
 }
 
 impl Device {
-    pub fn new(user_id: Uuid, os: Option<String>, user_agent: String, ip_adress: Option<String>) -> Self {
+    pub fn new(user_id: Uuid, os: Option<String>, user_agent: String, ip_address: Option<String>) -> Self {
         let device_id = Uuid::new();
         Device {
             id: device_id.clone(),
             token: create_id_token(user_id.clone(), user_id, Some(json!({ "deviceId": device_id.to_string() }))).unwrap_or_default(),
             os: os.unwrap_or_else(|| "Unknown".to_string()),
             user_agent: user_agent.to_string(),
-            ip_address: ip_adress.unwrap_or_else(|| "Unknown".to_string()),
+            ip_address: ip_address.unwrap_or_else(|| "Unknown".to_string()),
             created_at: DateTime::now().timestamp_millis(),
         }
     }

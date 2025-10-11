@@ -3,7 +3,7 @@ export default class Device {
 	token: string | null;
 	userAgent: string;
 	os: string | null;
-	ipAdress: string | null;
+	ipAddress: string | null;
 	createdAt: number;
 
 	constructor(
@@ -11,14 +11,14 @@ export default class Device {
 		token: string | null,
 		userAgent: string,
 		os: string | null,
-		ipAdress: string | null,
+		ipAddress: string | null,
 		createdAt: number
 	) {
 		this.id = id;
 		this.token = token;
 		this.userAgent = userAgent;
 		this.os = os;
-		this.ipAdress = ipAdress;
+		this.ipAddress = ipAddress;
 		this.createdAt = createdAt;
 	}
 
