@@ -480,7 +480,7 @@ impl User {
             }
         }
         
-        if &self.devices.len() >= &MAX_DEVICES {
+        if self.devices.len() >= MAX_DEVICES {
             return Err(UserError::MaxDevicesReached);
         }
 
