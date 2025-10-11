@@ -1,7 +1,5 @@
 <script lang="ts">
-	import ScopeList from '../../lib/components/global/ScopeList.svelte';
 	import type AuthRsApi from "$lib/api";
-	import OAuthConnection from "$lib/models/OAuthConnection";
 	import type User from "$lib/models/User";
 	import { Laptop, LogOut, Trash, Unlink } from "lucide-svelte";
 	import { onMount } from "svelte";
@@ -34,6 +32,10 @@
             .catch(e => console.error(e));
         return false;
     }
+
+    onMount(() => {
+        api.getUserDevices(user._id).then((devices) => user.devices = devices);
+    });
 </script>
 
 {#if removeDevicePopup}
