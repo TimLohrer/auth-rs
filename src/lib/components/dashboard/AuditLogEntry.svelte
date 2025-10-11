@@ -53,7 +53,7 @@
             return `${target} enabled 2FA.`;
         } else if (auditLog.reason.toUpperCase().includes('DISABLE TOTP')) {
             if (log.authorId !== log.entityId) {
-                return `${author} disabled 2FA for ${target}.`;
+                return `${author} disabled 2FA for <span class="text-[14px] opacity-75">${getEntityName(AuditLogEntityType.User, target)}</span>.`;
             }
             return `${target} disabled 2FA.`;
         } else if (auditLog.reason.toUpperCase().includes("PASSKEY LOGIN SUCCESSFUL")) {
