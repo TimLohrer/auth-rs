@@ -1,7 +1,9 @@
+use std::collections::HashMap;
+
 use rocket::{delete, get, http::Status, serde::{self, json::Json}};
 use rocket_db_pools::Connection;
 
-use crate::{auth::{mfa::MfaHandler, AuthEntity}, db::AuthRsDatabase, models::{device::DeviceDTO, http_response::HttpResponse, user_error::UserError}, utils::{parse_uuid::parse_uuid, response::json_response}};
+use crate::{auth::{mfa::MfaHandler, AuthEntity}, db::AuthRsDatabase, models::{audit_log::{AuditLog, AuditLogAction, AuditLogEntityType}, device::DeviceDTO, http_response::HttpResponse, user_error::UserError}, utils::{parse_uuid::parse_uuid, response::json_response}};
 
 #[allow(unused)]
 #[get("/users/<user_id>/devices")]
@@ -60,9 +62,13 @@ pub async fn delete_user_device(
         return json_response(HttpResponse::forbidden("Missing permissions!"));
     }
 
-    if !user.devices.iter().any(|d| d.id == device_uuid) {
+    let opt_device = user.devices.iter().find(|d| &d.id.to_string() == device_id);
+
+    if opt_device.is_none() {
         return json_response(HttpResponse::not_found("Device not found"));
     }
+
+    let device = opt_device.unwrap();
 
     match user.remove_device(device_uuid, &db).await {
         Ok(_) => {}
@@ -75,6 +81,16 @@ pub async fn delete_user_device(
             }
         }
     };
+
+    AuditLog::new(
+        user.id.to_string(),
+        AuditLogEntityType::User,
+        AuditLogAction::Update,
+        "Device removed".to_string(),
+        req_entity.user_id,
+        Some(HashMap::from([("deviceId".to_string(), device_id.to_string()), ("userAgent".to_string(), device.user_agent.clone()), ("os".to_string(), device.os.clone()), ("ip".to_string(), device.ip_address.clone())])),
+        None,
+    ).insert(&db).await.ok();
 
     json_response(HttpResponse {
         status: 200,
@@ -143,6 +159,16 @@ pub async fn delete_all_user_devices(
             }
         }
     };
+
+    AuditLog::new(
+        user.id.to_string(),
+        AuditLogEntityType::User,
+        AuditLogAction::Update,
+        "All devices removed".to_string(),
+        req_entity.user_id,
+        None,
+        None,
+    ).insert(&db).await.ok();
 
     json_response(HttpResponse {
         status: 200,
