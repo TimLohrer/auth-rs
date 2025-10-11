@@ -161,7 +161,7 @@ async fn process_authenticate_finish(
         .await
         .map_err(|_| ApiError::NotFound("Passkey not found with this credential".to_string()))?;
 
-    let user = User::get_by_id(passkey.owner, &db)
+    let mut user = User::get_by_id(passkey.owner, &db)
         .await
         .map_err(|_| ApiError::NotFound("User not found with this credential".to_string()))?;
 

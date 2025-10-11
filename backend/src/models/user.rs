@@ -444,7 +444,8 @@ impl User {
     }
 
     #[allow(unused)]
-    pub async fn get_device(&self,
+    pub async fn get_device(
+        &mut self,
         connection: &Connection<AuthRsDatabase>,
         os: OS<'_>,
         user_agent: UserAgent<'_>,
@@ -480,6 +481,7 @@ impl User {
                 let device = Device::new(self.id.clone(), if os.is_empty() { None } else { Some(os) }, user_agent, if ip.is_empty() { None } else { Some(ip) });
                 user.devices.push(device.clone());
                 db.replace_one(filter, user, None).await.map_err(|err| UserError::DatabaseError(err.to_string()))?;
+                &self.devices.push(device.clone());
                 Ok(device)
             },
             Ok(None) => Err(UserError::NotFound(Uuid::new())),

@@ -46,7 +46,7 @@ async fn process_login(
     os: OS<'_>,
     ip: IpAddr
 ) -> ApiResult<LoginResponse> {
-    let user = User::get_by_email(&login_data.email, db)
+    let mut user = User::get_by_email(&login_data.email, db)
         .await
         .map_err(|err| ApiError::InternalError(err.to_string()))?;
 

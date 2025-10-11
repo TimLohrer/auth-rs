@@ -99,9 +99,11 @@ async fn process_mfa(
             },
         ))
     } else {
+        let mut user = flow.user.clone();
+
         flow.user.cleanup_expired_devices(&db).await.ok();
 
-        let device = match flow.user.get_device(&db, os, user_agent, ip)
+        let device = match user.get_device(&db, os, user_agent, ip)
         .await {
             Ok(device) => device,
             Err(err) => match err {
@@ -113,7 +115,7 @@ async fn process_mfa(
         Ok((
             "MFA complete".to_string(),
             LoginResponse {
-                user: Some(flow.user.to_dto(true)),
+                user: Some(user.to_dto(true)),
                 token: Some(device.token),
                 mfa_required: false,
                 mfa_flow_id: None,
