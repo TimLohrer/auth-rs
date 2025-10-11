@@ -10,7 +10,7 @@ lazy_static! {
         "authorization_endpoint": format!("{}/api/oauth/authorize", get_base_domain()),
         "token_endpoint": format!("{}/api/oauth/token", get_base_domain()),
         "userinfo_endpoint": format!("{}/api/users/@me/plain", get_base_domain()),
-        "jwks_uri": format!("{}/.well-known/jwks.json", get_base_domain()),
+        "jwks_uri": format!("{}/api/.well-known/jwks.json", get_base_domain()),
         "response_types_supported": ["code"],
         "subject_types_supported": ["public"],
         "id_token_signing_alg_values_supported": ["RS256"],
