@@ -92,7 +92,7 @@ impl DatabaseMigrator {
                 pub created_at: DateTime,
             }
 
-            db.collection::<User>("users")
+            db.collection::<User1dot0dot24>("users")
                 .update_many(
                     doc! { "devices": { "$exists": false } },
                     doc! { "$set": { "devices": [] }, "$unset": { "token": "*" } },
