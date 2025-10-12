@@ -3,7 +3,7 @@ use rocket_db_pools::Connection;
 
 use crate::models::passkey::Passkey;
 use crate::{
-    auth::AuthEntity,
+    auth::auth::AuthEntity,
     db::AuthRsDatabase,
     errors::{ApiError, ApiResult, AppError},
     models::{

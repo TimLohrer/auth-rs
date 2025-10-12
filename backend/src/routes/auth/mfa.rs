@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use totp_rs::TOTP;
 
 use super::login::LoginResponse;
-use crate::auth::IpAddr;
+use crate::auth::auth::IpAddr;
 use crate::errors::AppError;
 use crate::models::device::Device;
 use crate::models::user_error::UserError;

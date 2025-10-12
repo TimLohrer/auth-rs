@@ -9,7 +9,7 @@ use rocket::{
 use rocket_db_pools::Connection;
 use user_agent_parser::{UserAgent, OS};
 
-use crate::auth::IpAddr;
+use crate::auth::auth::IpAddr;
 use crate::errors::AppError;
 use crate::models::audit_log::{AuditLog, AuditLogAction, AuditLogEntityType};
 use crate::models::device::Device;

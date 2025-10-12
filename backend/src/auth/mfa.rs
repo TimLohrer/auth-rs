@@ -10,10 +10,9 @@ use crate::{
     db::{get_main_db, AuthRsDatabase}, models::{
         audit_log::{AuditLog, AuditLogAction, AuditLogEntityType},
         user::User,
-    }, utils::base_urls::get_application_name, MFA_SESSIONS
+    }, utils::base_urls::get_application_name, MFA_SESSIONS,
+    auth::auth::AuthEntity
 };
-
-use super::AuthEntity;
 
 #[derive(Debug, Clone)]
 pub enum MfaState {

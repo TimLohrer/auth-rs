@@ -5,7 +5,7 @@ use super::{
     http_response::HttpResponse, oauth_application::OAuthApplication, oauth_token::OAuthToken,
 };
 use crate::auth::jwt::verify_id_token;
-use crate::auth::{AuthEntity, IpAddr};
+use crate::auth::auth::{AuthEntity, IpAddr};
 use crate::models::device::{Device, DeviceDTO};
 use crate::models::oauth_scope::{OAuthScope, ScopeActions};
 use crate::{

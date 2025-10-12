@@ -3,7 +3,7 @@ use rocket_db_pools::Connection;
 
 use crate::models::user::UserDTO;
 use crate::{
-    auth::AuthEntity,
+    auth::auth::AuthEntity,
     db::AuthRsDatabase,
     models::{
         http_response::HttpResponse,

@@ -1,4 +1,4 @@
-use crate::auth::IpAddr;
+use crate::auth::auth::IpAddr;
 use crate::models::passkey::Passkey;
 use crate::models::user_error::UserError;
 use crate::utils::base_urls::{get_application_name, get_base_domain, get_raw_base_domain};

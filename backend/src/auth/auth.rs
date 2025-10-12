@@ -1,7 +1,5 @@
 use crate::{
-    db::{get_main_db_name, AuthRsDatabase},
-    errors::{AppError, AppResult},
-    models::{oauth_token::OAuthToken, user::User},
+    auth::jwt::verify_id_token, db::{get_main_db_name, AuthRsDatabase}, errors::{AppError, AppResult}, models::{oauth_token::OAuthToken, user::User}
 };
 use mongodb::bson::Uuid;
 use rocket::{http::Status, outcome::Outcome, request::FromRequest, Request};
@@ -148,31 +146,41 @@ impl<'r> FromRequest<'r> for AuthEntity {
                 }
 
                 match token_type {
-                    "Bearer" => match User::get_full_by_token(token_value.to_owned(), &db).await {
-                        Ok(user) => {
-                            if user.disabled {
-                                return Outcome::Error((Status::Forbidden, AuthError::Forbidden));
-                            }
+                    "Bearer" => {
+                        let user_id = match verify_id_token(&token_value.to_owned()) {
+                            Ok(data) => match Uuid::parse_str(&data.claims.sub) {
+                                Ok(uuid) => uuid,
+                                Err(_) => return Outcome::Error((Status::InternalServerError, AuthError::DatabaseError))
+                            },
+                            Err(_) => return Outcome::Error((Status::Forbidden, AuthError::InvalidToken)),
+                        };
 
-                            Outcome::Success(AuthEntity::from_user(user))
-                        }
-                        Err(_) => match OAuthToken::get_by_token(token_value, &db).await {
-                            Ok(token) => {
-                                if token.is_expired() {
-                                    return Outcome::Error((
-                                        Status::Unauthorized,
-                                        AuthError::InvalidToken,
-                                    ));
+                        match User::get_by_id_db_param(user_id, &db).await {
+                            Ok(user) => {
+                                if user.disabled || user.get_device_by_token(&token_value.to_owned()).is_none() {
+                                    return Outcome::Error((Status::Forbidden, AuthError::Forbidden));
                                 }
 
-                                Outcome::Success(AuthEntity::from_token(token))
+                                Outcome::Success(AuthEntity::from_user(user))
                             }
-                            Err(_) => {
-                                Outcome::Error((Status::Unauthorized, AuthError::Unauthorized))
-                            }
-                        },
+                            Err(_) => match OAuthToken::get_by_token(token_value, &db).await {
+                                Ok(token) => {
+                                    if token.is_expired() {
+                                        return Outcome::Error((
+                                            Status::Unauthorized,
+                                            AuthError::InvalidToken,
+                                        ));
+                                    }
+
+                                    Outcome::Success(AuthEntity::from_token(token))
+                                }
+                                Err(_) => {
+                                    Outcome::Error((Status::Forbidden, AuthError::InvalidToken))
+                                }
+                            },
+                        }
                     },
-                    _ => Outcome::Error((Status::Unauthorized, AuthError::InvalidToken)),
+                    _ => Outcome::Error((Status::Unauthorized, AuthError::Unauthorized)),
                 }
             }
             None => Outcome::Error((Status::Unauthorized, AuthError::Unauthorized)),
@@ -199,45 +207,81 @@ impl<'r> FromRequest<'r> for OptionalAuthEntity {
                 let token_parts: Vec<&str> = token.split_whitespace().collect();
 
                 if token_parts.len() != 2 {
-                    return Outcome::Error((Status::Unauthorized, AuthError::InvalidToken));
+                    return Outcome::Success(OptionalAuthEntity::from_empty());
                 }
 
                 let token_type = token_parts[0];
                 let token_value = token_parts[1];
 
                 if token_value.is_empty() {
-                    return Outcome::Error((Status::Unauthorized, AuthError::InvalidToken));
+                    return Outcome::Success(OptionalAuthEntity::from_empty());
                 }
 
                 match token_type {
-                    "Bearer" => match User::get_full_by_token(token_value.to_owned(), &db).await {
-                        Ok(user) => {
-                            if user.disabled {
-                                return Outcome::Error((Status::Forbidden, AuthError::Forbidden));
-                            }
+                    "Bearer" => {
+                        let user_id = match verify_id_token(&token_value.to_owned()) {
+                            Ok(data) => match Uuid::parse_str(&data.claims.sub) {
+                                Ok(uid) => uid,
+                                Err(_) => return Outcome::Success(OptionalAuthEntity::from_empty()),
+                            },
+                            Err(_) => return Outcome::Success(OptionalAuthEntity::from_empty()),
+                        };
 
-                            Outcome::Success(OptionalAuthEntity::from_user(user))
-                        }
-                        Err(_) => match OAuthToken::get_by_token(token_value, &db).await {
-                            Ok(token) => {
-                                if token.is_expired() {
-                                    return Outcome::Error((
-                                        Status::Unauthorized,
-                                        AuthError::InvalidToken,
-                                    ));
+                        match User::get_by_id_db_param(user_id, &db).await {
+                            Ok(user) => {
+                                if user.disabled || user.get_device_by_token(&token_value.to_owned()).is_none() {
+                                    return Outcome::Success(OptionalAuthEntity::from_empty());
                                 }
 
-                                Outcome::Success(OptionalAuthEntity::from_token(token))
+                                Outcome::Success(OptionalAuthEntity::from_user(user))
                             }
-                            Err(_) => {
-                                Outcome::Error((Status::Unauthorized, AuthError::Unauthorized))
+                            Err(_) => match OAuthToken::get_by_token(token_value, &db).await {
+                                Ok(token) => {
+                                    if token.is_expired() {
+                                        return Outcome::Success(OptionalAuthEntity::from_empty());
+                                    }
+
+                                    Outcome::Success(OptionalAuthEntity::from_token(token))
+                                }
+                                Err(_) => Outcome::Success(OptionalAuthEntity::from_empty()),
                             }
-                        },
+                        }
                     },
-                    _ => Outcome::Error((Status::Unauthorized, AuthError::InvalidToken)),
+                    _ => Outcome::Success(OptionalAuthEntity::from_empty()),
                 }
             }
             None => Outcome::Success(OptionalAuthEntity::from_empty()),
         }
+    }
+}
+
+pub struct IpAddr {
+    pub addr: Option<String>
+}
+
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for IpAddr {
+    type Error = (Status, ());
+
+    async fn from_request(request: &'r Request<'_>) -> Outcome<IpAddr, (Status, Self::Error), Status> {
+        if let Some(ip) = request.real_ip() {
+            Outcome::Success(IpAddr { addr: Some(ip.to_string()) })
+        } else {
+            Outcome::Success(IpAddr { addr: None })
+        }
+    }
+}
+
+#[allow(unused)]
+pub struct RequestHeaders {
+    pub headers: Vec<(String, String)>
+}
+
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for RequestHeaders {
+    type Error = (Status, ());
+
+    async fn from_request(request: &'r Request<'_>) -> Outcome<RequestHeaders, (Status, Self::Error), Status> {
+        Outcome::Success(RequestHeaders { headers: request.headers().iter().map(|h| (h.name().to_string(), h.value().to_string())).collect() } )
     }
 }

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use rocket::{delete, get, http::Status, serde::{self, json::Json}};
 use rocket_db_pools::Connection;
 
-use crate::{auth::{mfa::MfaHandler, AuthEntity}, db::AuthRsDatabase, models::{audit_log::{AuditLog, AuditLogAction, AuditLogEntityType}, device::DeviceDTO, http_response::HttpResponse, user_error::UserError}, utils::{parse_uuid::parse_uuid, response::json_response}};
+use crate::{auth::{mfa::MfaHandler, auth::AuthEntity}, db::AuthRsDatabase, models::{audit_log::{AuditLog, AuditLogAction, AuditLogEntityType}, device::DeviceDTO, http_response::HttpResponse, user_error::UserError}, utils::{parse_uuid::parse_uuid, response::json_response}};
 
 #[allow(unused)]
 #[get("/users/<user_id>/devices")]
