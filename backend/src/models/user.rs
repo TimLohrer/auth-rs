@@ -562,7 +562,7 @@ impl User {
 
     #[allow(unused)]
     pub async fn cleanup_expired_devices(
-        &self,
+        &mut self,
         connection: &Connection<AuthRsDatabase>,
     ) -> Result<(), UserError> {
         let db = Self::get_collection(connection);
@@ -575,8 +575,10 @@ impl User {
         }
 
         for device_id in expired_device_ids {
-            let _ = self.remove_device(device_id, connection).await;
+            self.devices.retain(|d| d.id != device_id);
         }
+        self.update(connection).await?;
+
         Ok(())
     }
 
