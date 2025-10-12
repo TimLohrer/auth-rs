@@ -282,8 +282,6 @@ fn rocket() -> _ {
                 routes::oauth_applications::delete::delete_oauth_application,
                 // OAuth Routes
                 routes::oauth::token::get_oauth_token,
-                routes::oauth::token::token_raw,
-                routes::oauth::token::get_oauth_token_json,
                 routes::oauth::authorize::authorize_oauth_application,
                 routes::oauth::revoke::revoke_oauth_token,
                 // Connection Routes
