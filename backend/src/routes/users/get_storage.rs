@@ -28,7 +28,7 @@ pub async fn get_full_user_data_storage(
         Err(err) => return json_response(err.into()),
     };
 
-    if !req_entity.is_user() && (req_entity.user.as_ref().unwrap().id == uuid || req_entity.user.as_ref().unwrap().is_admin()) {
+    if !req_entity.is_user() || (req_entity.user.as_ref().unwrap().id != uuid && !req_entity.user.as_ref().unwrap().is_admin()) {
         return json_response(HttpResponse::forbidden("Forbidden"));
     }
 
