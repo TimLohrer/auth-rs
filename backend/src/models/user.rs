@@ -560,15 +560,16 @@ impl User {
     ) -> Result<(), UserError> {
         let db = Self::get_collection(connection);
 
+        let mut expired_device_ids = Vec::new();
         for device in &self.devices {
-            match verify_id_token(&device.token) {
-                Ok(_) => {},
-                Err(_) => {
-                    let _ = self.remove_device(device.id, connection).await;
-                },
+            if verify_id_token(&device.token).is_err() {
+                expired_device_ids.push(device.id);
             }
         }
 
+        for device_id in expired_device_ids {
+            let _ = self.remove_device(device_id, connection).await;
+        }
         Ok(())
     }
 
