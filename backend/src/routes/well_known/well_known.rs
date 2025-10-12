@@ -7,7 +7,7 @@ use crate::{auth::{jwk::jwk_from_pubkey, oidc::OidcKeys}, utils::base_urls::{get
 lazy_static! {
     static ref CONFIGURATION: Value = json!({
         "issuer": get_application_name(),
-        "authorization_endpoint": format!("{}/api/oauth/authorize", get_base_domain()),
+        "authorization_endpoint": format!("{}/oauth/authorize", get_base_domain()),
         "token_endpoint": format!("{}/api/oauth/token", get_base_domain()),
         "userinfo_endpoint": format!("{}/api/users/@me/plain", get_base_domain()),
         "jwks_uri": format!("{}/api/.well-known/jwks.json", get_base_domain()),
@@ -28,7 +28,7 @@ lazy_static! {
             "connections:delete",
             "connections:*"
         ],
-        "token_endpoint_auth_methods_supported": ["client_secret_basic"]
+        "token_endpoint_auth_methods_supported": ["client_secret_post"]
     });
 }
 
