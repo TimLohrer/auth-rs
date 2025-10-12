@@ -1,7 +1,7 @@
 use crate::models::user::UserDTO;
 use crate::utils::response::json_response;
 use crate::{
-    auth::AuthEntity,
+    auth::auth::AuthEntity,
     db::AuthRsDatabase,
     models::{
         audit_log::{AuditLog, AuditLogAction, AuditLogEntityType},
@@ -269,25 +269,25 @@ async fn update_user_internal(
     let user = User::get_by_id(uuid, &db)
         .await
         .map_err(|_| UserError::NotFound(uuid))?;
-    let mut update = UserUpdate::new(user);
+    let mut update = UserUpdate::new(user.clone());
 
     // Apply updates
-    if let Some(email) = data.email {
-        update.update_email(email, &db).await?;
-    }
-
-    if let Some(password) = data.password {
-        update.update_password(password)?;
+    if !user.is_system_admin() {
+        if let Some(email) = data.email {
+            update.update_email(email, &db).await?;
+        }
+        if let Some(password) = data.password {
+            update.update_password(password)?;
+        }
+        if let Some(disabled) = data.disabled {
+            update.update_disabled(disabled, req_user)?;
+        }
     }
 
     update.update_name(data.first_name, data.last_name)?;
 
     if let Some(roles) = data.roles {
         update.update_roles(roles, &db, req_user).await?;
-    }
-
-    if let Some(disabled) = data.disabled {
-        update.update_disabled(disabled, req_user)?;
     }
 
     // Save changes

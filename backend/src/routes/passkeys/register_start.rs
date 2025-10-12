@@ -3,7 +3,7 @@ use crate::models::passkey::Passkey;
 use crate::routes::auth::passkey::get_webauthn;
 use crate::utils::response::json_response;
 use crate::{
-    auth::AuthEntity,
+    auth::auth::AuthEntity,
     db::AuthRsDatabase,
     errors::{ApiError, ApiResult, AppError},
     REGISTRATIONS,

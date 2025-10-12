@@ -4,7 +4,9 @@ use super::user_error::{UserError, UserResult};
 use super::{
     http_response::HttpResponse, oauth_application::OAuthApplication, oauth_token::OAuthToken,
 };
-use crate::auth::AuthEntity;
+use crate::auth::jwt::verify_id_token;
+use crate::auth::auth::{AuthEntity, IpAddr};
+use crate::models::device::{Device, DeviceDTO};
 use crate::models::oauth_scope::{OAuthScope, ScopeActions};
 use crate::{
     db::{get_main_db, AuthRsDatabase},
@@ -14,9 +16,7 @@ use anyhow::Result;
 use argon2::password_hash::rand_core::OsRng;
 use argon2::password_hash::SaltString;
 use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
-use base64::{engine::general_purpose, Engine as _};
 use mongodb::bson::{doc, DateTime, Uuid};
-use rand::Rng;
 use rocket::{
     futures::StreamExt,
     serde::{Deserialize, Serialize},
@@ -26,6 +26,9 @@ use rocket_db_pools::{
     Connection,
 };
 use serde_json::Value;
+use user_agent_parser::{UserAgent, OS};
+
+pub const MAX_DEVICES: usize = 50;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
@@ -39,7 +42,7 @@ pub struct User {
     pub password_hash: String,
     pub salt: String,
     pub totp_secret: Option<String>,
-    pub token: String,
+    pub devices: Vec<Device>,
     pub roles: Vec<Uuid>,
     pub data_storage: HashMap<String, Value>,
     pub disabled: bool,
@@ -57,6 +60,7 @@ pub struct UserDTO {
     pub last_name: String,
     pub roles: Vec<Uuid>,
     pub mfa: bool,
+    pub devices: Vec<DeviceDTO>,
     pub data_storage: Option<HashMap<String, Value>>,
     pub disabled: bool,
     pub created_at: DateTime,
@@ -64,16 +68,6 @@ pub struct UserDTO {
 
 impl User {
     pub const COLLECTION_NAME: &'static str = "users";
-
-    pub fn generate_token() -> String {
-        // Generate a more secure token using a cryptographically secure RNG
-        let mut rng = rand::rng();
-        let mut buffer = [0u8; 64]; // 512 bits of randomness
-        rng.fill(&mut buffer);
-
-        // Convert to base64 for string representation
-        general_purpose::STANDARD.encode(buffer)
-    }
 
     pub fn verify_password(&self, password: &str) -> Result<(), UserError> {
         let hash =
@@ -96,6 +90,11 @@ impl User {
             } else {
                 None
             },
+            devices: self
+                .devices
+                .iter()
+                .map(|device| device.to_dto())
+                .collect(),
             disabled: self.disabled,
             created_at: self.created_at,
         }
@@ -126,7 +125,7 @@ impl User {
             password_hash: Self::hash_password(&password, &salt.to_string())?,
             salt: salt.as_str().to_string(),
             totp_secret: None,
-            token: Self::generate_token(),
+            devices: vec![],
             roles: Vec::from([*DEFAULT_ROLE_ID]),
             data_storage: HashMap::new(),
             disabled: false,
@@ -157,7 +156,7 @@ impl User {
             password_hash,
             salt: salt.as_str().to_string(),
             totp_secret: None,
-            token: Self::generate_token(),
+            devices: vec![],
             roles: roles
                 .iter()
                 .map(|role| Uuid::parse_str(role).unwrap())
@@ -256,23 +255,22 @@ impl User {
     }
 
     #[allow(unused)]
-    pub async fn get_full_by_token(token: String, mut db: &Database) -> UserResult<User> {
-        let db = db.collection(Self::COLLECTION_NAME);
+    pub async fn get_by_id(id: Uuid, connection: &Connection<AuthRsDatabase>) -> UserResult<User> {
+        let db = Self::get_collection(connection);
 
         let filter = doc! {
-            "token": token
+            "_id": id
         };
         match db.find_one(filter, None).await {
             Ok(Some(user)) => Ok(user),
-            //TODO: Not sure if we should return a placeholder UUID here
-            Ok(None) => Err(UserError::NotFound(Uuid::new())), // Using a placeholder UUID
+            Ok(None) => Err(UserError::NotFound(id)),
             Err(err) => Err(UserError::DatabaseError(err.to_string())),
         }
     }
 
     #[allow(unused)]
-    pub async fn get_by_id(id: Uuid, connection: &Connection<AuthRsDatabase>) -> UserResult<User> {
-        let db = Self::get_collection(connection);
+    pub async fn get_by_id_db_param(id: Uuid, mut db: &Database) -> UserResult<User> {
+        let db = db.collection(Self::COLLECTION_NAME);
 
         let filter = doc! {
             "_id": id
@@ -387,7 +385,8 @@ impl User {
         };
         let update = doc! {
             "$set": {
-                "disabled": true
+                "disabled": true,
+                "devices": []
             }
         };
         match db.find_one_and_update(filter, update, None).await {
@@ -442,6 +441,136 @@ impl User {
                 data: None,
             }),
         }
+    }
+
+    #[allow(unused)]
+    pub async fn get_device(
+        &mut self,
+        connection: &Connection<AuthRsDatabase>,
+        os: OS<'_>,
+        user_agent: UserAgent<'_>,
+        ip: IpAddr
+    ) -> Result<Device, UserError> {
+        let db = Self::get_collection(connection);
+
+        let os = os.name.unwrap_or_default().into_owned();
+        let user_agent = user_agent.user_agent.unwrap_or_default().into_owned();
+        let ip = ip.addr.unwrap_or_default();
+
+        for mut device in self.devices.clone() {
+            if (device.os.to_uppercase() == "UNKNOWN" || device.os == os)
+                && device.user_agent == user_agent
+                && (device.ip_address.to_uppercase() == "UNKNOWN" || device.ip_address == ip)
+            {
+                device.created_at = DateTime::now().timestamp_millis();
+
+                let filter = doc! {
+                    "_id": self.id,
+                    "devices.id": device.id
+                };
+
+                let update = doc! {
+                    "$set": {
+                        "devices.$.createdAt": device.created_at
+                    }
+                };
+
+                db.update_one(filter, update, None).await.map_err(|err| UserError::DatabaseError(err.to_string()))?;
+                return Ok(device);
+            }
+        }
+        
+        if self.devices.len() >= MAX_DEVICES {
+            return Err(UserError::MaxDevicesReached);
+        }
+
+        let device = Device::new(self.id.clone(), if os.is_empty() { None } else { Some(os) }, user_agent, if ip.is_empty() { None } else { Some(ip) })?;
+        self.devices.push(device.clone());
+        self.update(&connection).await.map_err(|err| UserError::DatabaseError(err.to_string()))?;
+        Ok(device)
+    }
+
+    #[allow(unused)]
+    pub fn get_device_by_token(&self, token: &str) -> Option<Device> {
+        for device in &self.devices {
+            if device.token == token {
+                return Some(device.clone());
+            }
+        }
+        None
+    }
+
+    #[allow(unused)]
+    pub async fn remove_device(
+        &self,
+        device_id: Uuid,
+        connection: &Connection<AuthRsDatabase>,
+    ) -> Result<(), UserError> {
+        let db = Self::get_collection(connection);
+        
+        let filter = doc! {
+            "_id": self.id
+        };
+
+        let update = doc! {
+            "$pull": {
+                "devices": { "id": device_id }
+            }
+        };
+
+        match db.update_one(filter, update, None).await {
+            Ok(_) => Ok(()),
+            Err(err) => Err(UserError::DatabaseError(format!(
+                "Error removing device: {:?}",
+                err
+            ))),
+        }
+    }
+
+    #[allow(unused)]
+    pub async fn remove_all_devices(
+        &self,
+        connection: &Connection<AuthRsDatabase>,
+    ) -> Result<(), UserError> {
+        let db = Self::get_collection(connection);
+        
+        let filter = doc! {
+            "_id": self.id
+        };
+
+        let update = doc! {
+            "$set": {
+                "devices": []
+            }
+        };
+
+        match db.update_one(filter, update, None).await {
+            Ok(_) => Ok(()),
+            Err(err) => Err(UserError::DatabaseError(format!(
+                "Error removing all devices: {:?}",
+                err
+            ))),
+        }
+    }
+
+    #[allow(unused)]
+    pub async fn cleanup_expired_devices(
+        &self,
+        connection: &Connection<AuthRsDatabase>,
+    ) -> Result<(), UserError> {
+        let db = Self::get_collection(connection);
+
+        let mut expired_device_ids = Vec::new();
+        for device in &self.devices {
+            if verify_id_token(&device.token).is_err() {
+                expired_device_ids.push(device.id);
+            }
+        }
+
+        for device_id in expired_device_ids {
+            let _ = self.remove_device(device_id, connection).await;
+        }
+        Ok(())
     }
 
     #[allow(unused)]

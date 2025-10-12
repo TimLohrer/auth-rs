@@ -8,3 +8,4 @@ pub mod passkeys;
 pub mod update;
 pub mod get_storage;
 pub mod update_storage;
+pub mod devices;

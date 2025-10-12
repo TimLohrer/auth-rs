@@ -29,16 +29,6 @@ pub struct TokenOAuthFieldData {
     pub redirect_uri: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-#[serde(crate = "rocket::serde")]
-pub struct TokenOAuthJsonData {
-    pub client_id: String,
-    pub client_secret: String,
-    pub grant_type: String,
-    pub code: u32,
-    pub redirect_uri: String,
-}
-
 #[derive(Debug, Deserialize)]
 #[serde(crate = "rocket::serde")]
 #[serde(rename_all = "camelCase")]
@@ -85,32 +75,6 @@ pub async fn get_oauth_token(
         Err(status) => (status, None),
     }
 }
-
-#[allow(unused)]
-#[post(
-    "/oauth/token/json",
-    format = "json",
-    data = "<data>"
-)]
-pub async fn get_oauth_token_json(
-    db: Connection<AuthRsDatabase>,
-    data: Json<TokenOAuthJsonData>,
-) -> (Status, Option<Json<Option<TokenOAuthResponse>>>) {
-    let data = data.into_inner();
-
-    match handle_token_request(
-        db,
-        data.client_id,
-        data.client_secret,
-        data.grant_type,
-        data.code,
-        data.redirect_uri,
-    ).await {
-        Ok(response) => (Status::Ok, Some(Json(Some(response)))),
-        Err(status) => (status, Some(Json(None))),
-    }
-}
-
 
 async fn handle_token_request(
     db: Connection<AuthRsDatabase>,

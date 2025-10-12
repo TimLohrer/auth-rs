@@ -22,6 +22,7 @@
 	import RegistrationCodes from './RegistrationCodes.svelte';
 	import type Passkey from '$lib/models/Passkey';
 	import { apiUrl, debugMode } from '$lib/store/config';
+	import Devices from './Devices.svelte';
 
     const authStateManager = new AuthStateManager($apiUrl);
     let api = new AuthRsApi($apiUrl);
@@ -46,6 +47,7 @@
     }[] = [
         { slug: 'your-profile', name: 'Your Profile', icon: 'user', shouldShow: () => true },
         { slug: 'security', name: 'Security', icon: 'shield', shouldShow: () => true },
+        { slug: 'devices', name: 'Devices', icon: 'laptop', shouldShow: () => true },
         { slug: 'connections', name: 'Connections', icon: 'link', shouldShow: (user) => !User.isSystemAdmin(user) },
         { slug: 'oauth-applications', name: 'OAuth Applications', icon: 'code-xml', shouldShow: (user, settings) => settings.allowOauthAppsForUsers || User.isAdmin(user) },
         { slug: 'logs', name: 'Logs', icon: 'clipboard-list', shouldShow: () => true },
@@ -101,6 +103,8 @@
                     <Profile bind:api bind:user bind:roles />
                 {:else if TABS[currentTabIndex].slug == 'security'}
                     <Security bind:api bind:user bind:passkeys />
+                {:else if TABS[currentTabIndex].slug == 'devices'}
+                    <Devices bind:api bind:user />
                 {:else if TABS[currentTabIndex].slug == 'connections'}
                     <Connections bind:api bind:user bind:connections />
                 {:else if TABS[currentTabIndex].slug == 'oauth-applications'}

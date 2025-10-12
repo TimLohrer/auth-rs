@@ -8,7 +8,7 @@ use rocket_db_pools::Connection;
 use crate::utils::response::json_response;
 use crate::SETTINGS;
 use crate::{
-    auth::AuthEntity,
+    auth::auth::AuthEntity,
     db::AuthRsDatabase,
     models::{
         audit_log::{AuditLog, AuditLogAction, AuditLogEntityType},

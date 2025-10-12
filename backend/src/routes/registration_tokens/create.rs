@@ -10,7 +10,7 @@ use crate::models::role::Role;
 use crate::utils::response::json_response;
 use crate::DEFAULT_ROLE_ID;
 use crate::{
-    auth::AuthEntity,
+    auth::auth::AuthEntity,
     db::AuthRsDatabase,
     models::{
         audit_log::{AuditLog, AuditLogAction, AuditLogEntityType},

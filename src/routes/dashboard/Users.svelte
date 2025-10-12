@@ -2,7 +2,7 @@
 	import TextInput from '../../lib/components/global/TextInput.svelte';
 	import Popup from '../../lib/components/global/Popup.svelte';
 	import type AuthRsApi from "$lib/api";
-	import { LockOpen, PackageOpen, Pen, Trash, UserCheck, UserX } from "lucide-svelte";
+	import { LockOpen, LogOut, PackageOpen, Pen, Trash, UserCheck, UserX } from "lucide-svelte";
 	import { onMount } from "svelte";
 	import UserUpdates from '$lib/models/UserUpdates';
 	import User from '$lib/models/User';
@@ -43,6 +43,9 @@
 
     let disableTotpPopup: boolean = false;
     let disableTotpUser: User | null = null;
+
+    let logoutOnAllDevicesPopup: boolean = false;
+    let logoutOnAllDevicesUser: User | null = null;
 
     let deleteUserPopup: boolean = false;
     let deleteUser: User | null = null;
@@ -260,7 +263,7 @@
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
             <!-- svelte-ignore a11y_click_events_have_key_events -->
             <p
-                class="text-green-600 cursor-pointer rounded-md text-[18px]"
+                class="text-red-600 cursor-pointer rounded-md text-[18px]"
                 style="margin-top: 25px;"
                 on:click={() => {
                     disableTotpPopup = false;
@@ -274,6 +277,29 @@
         </div>
     </Popup>
 {/if}
+
+{#if logoutOnAllDevicesPopup}
+    <Popup title="Logout on all devices" onClose={() => logoutOnAllDevicesPopup = false}>
+        <div class="flex flex-col items-center justify-center max-w-[350px]" style="margin-top: 20px; margin-bottom: 20px;">
+            <p class="text-[14px] text-center opacity-50">Are you sure you want to logout "{logoutOnAllDevicesUser?.firstName} {logoutOnAllDevicesUser?.lastName}" on all their devices?</p>
+            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <p
+                class="text-red-600 cursor-pointer rounded-md text-[18px]"
+                style="margin-top: 25px;"
+                on:click={() => {
+                    logoutOnAllDevicesPopup = false;
+                    api.deleteAllDevicesForUser(logoutOnAllDevicesUser!._id, null, null)
+                        .then(() => {
+                            users[users.map(user => user._id).indexOf(logoutOnAllDevicesUser!._id)].devices = [];
+                        })
+                        .catch(e => console.error(e));
+                }}
+            >Confirm</p>
+        </div>
+    </Popup>
+{/if}
+
 {#if enableUserPopup}
     <Popup title="Enable User" onClose={() => enableUserPopup = false}>
         <div class="flex flex-col items-center justify-center max-w-[350px]" style="margin-top: 20px; margin-bottom: 20px;">
@@ -388,6 +414,21 @@
                                             size=20
                                         />
                                     {/if}
+                                </div>
+                            </Tooltip>
+                        {/if}
+                        {#if User.isAdmin(currentUser) && user.devices.length > 0}
+                            <Tooltip tip="Logout on all devices" bottom color="var(--color-red-600)">
+                                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                                <div class="flex self-end" style="margin-right: 12.5px;" on:click={() => {
+                                    logoutOnAllDevicesUser = user;
+                                    logoutOnAllDevicesPopup = true;
+                                }}>
+                                    <LogOut
+                                        class="cursor-pointer hover:text-red-600 transition-all"
+                                        size=20
+                                    />
                                 </div>
                             </Tooltip>
                         {/if}

@@ -1,8 +1,9 @@
-use std::env;
-use crate::{models::{settings::Settings, user::User}, SETTINGS_ID};
+use std::{collections::HashMap, env};
+use crate::{models::{device::Device, oauth_token::OAuthToken, settings::Settings, user::User}, SETTINGS_ID};
 use mongodb::bson::{doc, DateTime, Uuid};
 use rocket::serde::{Deserialize, Serialize};
-use rocket_db_pools::mongodb::Database;
+use rocket_db_pools::mongodb::{options::FindOneOptions, Database};
+use serde_json::Value;
 
 pub struct DatabaseMigrator {}
 
@@ -12,8 +13,8 @@ impl DatabaseMigrator {
         let current_version_raw = env::var("VERSION").expect("VERSION must be set in .env file");
         let current_version = invalid_version_chars.replace_all(&current_version_raw, "").to_string();
         let mut db_version = match db
-            .collection::<Settings>("settings")
-            .find_one(doc! { "_id": *SETTINGS_ID }, None)
+            .collection::<Settings>(Settings::COLLECTION_NAME)
+            .find_one(doc! { "_id": *SETTINGS_ID }, Some(FindOneOptions::builder().allow_partial_results(true).build()))
             .await
         {
             Ok(Some(settings)) => settings.version,
@@ -34,7 +35,26 @@ impl DatabaseMigrator {
 
             println!("Adding 'dataStorage' field to all users...");
 
-            db.collection::<User>("users")
+            #[derive(Debug, Clone, Serialize, Deserialize)]
+            #[serde(crate = "rocket::serde")]
+            #[serde(rename_all = "camelCase")]
+            pub struct User1dot0dot23 {
+                #[serde(rename = "_id")]
+                pub id: Uuid,
+                pub email: String,
+                pub first_name: String,
+                pub last_name: String,
+                pub password_hash: String,
+                pub salt: String,
+                pub totp_secret: Option<String>,
+                pub token: String,
+                pub roles: Vec<Uuid>,
+                pub data_storage: HashMap<String, Value>,
+                pub disabled: bool,
+                pub created_at: DateTime,
+            }
+
+            db.collection::<User1dot0dot23>(User::COLLECTION_NAME)
                 .update_many(
                     doc! { "dataStorage": { "$exists": false } },
                     doc! { "$set": { "dataStorage": {} } },
@@ -48,10 +68,52 @@ impl DatabaseMigrator {
             println!("Migration to version 1.0.23 completed.");
         }
 
+        if db_version == "1.0.23" {
+            println!("Running migration from version 1.0.23 to 1.0.24...");
+
+            println!("Moving from 'token' field to 'devices' for all users...");
+
+            #[derive(Debug, Clone, Serialize, Deserialize)]
+            #[serde(crate = "rocket::serde")]
+            #[serde(rename_all = "camelCase")]
+            pub struct User1dot0dot24 {
+                #[serde(rename = "_id")]
+                pub id: Uuid,
+                pub email: String,
+                pub first_name: String,
+                pub last_name: String,
+                pub password_hash: String,
+                pub salt: String,
+                pub totp_secret: Option<String>,
+                pub devices: Vec<Device>,
+                pub roles: Vec<Uuid>,
+                pub data_storage: HashMap<String, Value>,
+                pub disabled: bool,
+                pub created_at: DateTime,
+            }
+
+            db.collection::<User1dot0dot24>("users")
+                .update_many(
+                    doc! { "devices": { "$exists": false } },
+                    doc! { "$set": { "devices": [] }, "$unset": { "token": "*" } },
+                    None,
+                )
+                .await
+                .map_err(|e| format!("Failed to update users during migration: {:?}", e))?;
+
+            println!("Deleting all existing OAuth tokens to move to JWT tokens...");
+            db.collection::<OAuthToken>(OAuthToken::COLLECTION_NAME).delete_many(doc! {}, None)
+                .await
+                .map_err(|e| format!("Failed to delete OAuth tokens during migration: {:?}", e))?;
+            
+            db_version = "1.0.24".to_string();
+            println!("Migration to version 1.0.24 completed.");
+        }
+
         // Add future migrations here
-        // if db_version == "1.0.23" {
+        // if db_version == "1.0.24" {
         //     // Migration code...
-        //     db_version = "1.0.24".to_string();
+        //     db_version = "1.0.25".to_string();
         // }
 
         Self::update_version_history(&db, &current_version).await;
@@ -87,7 +149,7 @@ impl DatabaseMigrator {
                 }
             }
             false => db
-                .collection::<Settings>("settings")
+                .collection::<Settings>(Settings::COLLECTION_NAME)
                 .find_one(doc! { "_id": *SETTINGS_ID }, None)
                 .await
                 .expect("Failed to fetch settings for version update")

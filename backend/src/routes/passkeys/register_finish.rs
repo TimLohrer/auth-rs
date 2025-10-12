@@ -1,7 +1,7 @@
 use crate::models::passkey::Passkey;
 use crate::routes::auth::passkey::get_webauthn;
 use crate::{
-    auth::AuthEntity,
+    auth::auth::AuthEntity,
     db::AuthRsDatabase,
     errors::{ApiError, ApiResult, AppError},
     models::{

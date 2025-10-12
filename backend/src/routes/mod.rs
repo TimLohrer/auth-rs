@@ -9,3 +9,4 @@ pub mod registration_tokens;
 pub mod roles;
 pub mod settings;
 pub mod users;
+pub mod well_known;

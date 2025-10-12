@@ -9,7 +9,7 @@ use rocket::{
 use rocket_db_pools::Connection;
 
 use crate::{
-    auth::AuthEntity,
+    auth::auth::AuthEntity,
     db::AuthRsDatabase,
     models::{oauth_application::OAuthApplication, oauth_scope::OAuthScope},
     OAUTH_CODES,

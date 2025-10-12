@@ -5,10 +5,15 @@ use rocket::{
     serde::{json::Json, Deserialize, Serialize},
 };
 use rocket_db_pools::Connection;
+use user_agent_parser::{UserAgent, OS};
 use std::collections::HashMap;
 use totp_rs::TOTP;
 
 use super::login::LoginResponse;
+use crate::auth::auth::IpAddr;
+use crate::errors::AppError;
+use crate::models::device::Device;
+use crate::models::user_error::UserError;
 use crate::utils::response::json_response;
 use crate::{
     auth::mfa::{MfaState, MfaType},
@@ -33,7 +38,10 @@ pub struct MfaData {
 async fn process_mfa(
     db: &Connection<AuthRsDatabase>,
     mfa_data: MfaData,
-) -> ApiResult<(String, LoginResponse)> {
+    user_agent: UserAgent<'_>,
+    os: OS<'_>,
+    ip: IpAddr
+) -> ApiResult<(String, LoginResponse, Option<Device>)> {
     let mfa_sessions = MFA_SESSIONS.lock().await;
     let cloned_sessions = mfa_sessions.clone();
 
@@ -90,16 +98,31 @@ async fn process_mfa(
                 mfa_required: false,
                 mfa_flow_id: None,
             },
+            None
         ))
     } else {
+        let mut user = flow.user.clone();
+
+        flow.user.cleanup_expired_devices(&db).await.ok();
+
+        let device = match user.get_device(&db, os, user_agent, ip)
+        .await {
+            Ok(device) => device,
+            Err(err) => match err {
+                UserError::MaxDevicesReached => return Err(ApiError::AppError(AppError::DeviceError("Maximum number of devices reached. Please remove an existing device before adding a new one.".to_string()))),
+                _ => return Err(ApiError::AppError(AppError::DeviceError("Failed to get or create device.".to_string()))),
+            },
+        };
+
         Ok((
             "MFA complete".to_string(),
             LoginResponse {
-                user: Some(flow.user.to_dto(true)),
-                token: Some(flow.user.token.to_string()),
+                user: Some(user.to_dto(true)),
+                token: Some(device.token.clone()),
                 mfa_required: false,
                 mfa_flow_id: None,
             },
+            Some(device)
         ))
     }
 }
@@ -109,11 +132,14 @@ async fn process_mfa(
 pub async fn mfa(
     db: Connection<AuthRsDatabase>,
     data: Json<MfaData>,
+    user_agent: UserAgent<'_>,
+    os: OS<'_>,
+    ip: IpAddr
 ) -> (Status, Json<HttpResponse<LoginResponse>>) {
     let mfa_data = data.into_inner();
 
-    match process_mfa(&db, mfa_data).await {
-        Ok((message, response)) => {
+    match process_mfa(&db, mfa_data, user_agent, os, ip).await {
+        Ok((message, response, device)) => {
             if message == "MFA complete" {
                 AuditLog::new(
                     response.user.clone().unwrap().id.to_string(),
@@ -122,7 +148,7 @@ pub async fn mfa(
                     "MFA login successful.".to_string(),
                     response.user.clone().unwrap().id,
                     None,
-                    None,
+                    Some(HashMap::from([("userAgent".to_string(), device.clone().unwrap().user_agent), ("os".to_string(), device.clone().unwrap().os), ("ip".to_string(), device.unwrap().ip_address)])),
                 )
                 .insert(&db)
                 .await

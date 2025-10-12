@@ -95,6 +95,9 @@ pub enum AppError {
 
     #[error("JSON serialization error: {0}")]
     JsonSerializationError(#[from] serde_json::Error),
+
+    #[error("Device Error")]
+    DeviceError(String),
 }
 
 // Implement From<HttpResponse<T>> for AppError
@@ -253,6 +256,11 @@ impl<T> From<AppError> for HttpResponse<T> {
                 message: format!("JSON serialization error: {}", err),
                 data: None,
             },
+            AppError::DeviceError(msg) => HttpResponse {
+                status: 400,
+                message: format!("Device error: {}", msg),
+                data: None,
+            },
         }
     }
 }
@@ -345,6 +353,9 @@ impl From<UserError> for AppError {
             UserError::RegistrationClosed => AppError::MissingPermissions,
             UserError::RegistrationCodeInvalid => {
                 AppError::InvalidOrMissingFields("Registration code invalid".to_string())
+            }
+            UserError::MaxDevicesReached => {
+                AppError::DeviceError("Maximum number of devices reached".to_string())
             }
         }
     }

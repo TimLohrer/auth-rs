@@ -7,7 +7,7 @@ use rocket::{
 use rocket_db_pools::Connection;
 
 use crate::{
-    auth::OptionalAuthEntity,
+    auth::auth::OptionalAuthEntity,
     db::AuthRsDatabase,
     models::registration_token::RegistrationToken,
     models::user::UserDTO,
