@@ -12,7 +12,7 @@ pub const DEFAULT_KEY_DIR: &str = "data/keys";
 pub const DEFAULT_PRIV_KEY: &str = "data/keys/oidc_private.pem";
 pub const DEFAULT_PUB_KEY: &str = "data/keys/oidc_public.pem";
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct Claims {
     pub sub: String,

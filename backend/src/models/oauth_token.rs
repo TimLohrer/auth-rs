@@ -259,6 +259,10 @@ impl OAuthToken {
             "_id": self.id
         };
 
+        self.token = create_id_token(self.user_id, self.application_id, Some(json!({"scope": scope.clone()})))
+            .map_err(|err| {
+                OAuthTokenError::InternalError(format!("Failed to create token: {}", err))
+            })?;
         self.scope = scope;
         self.expires_in = 30 * 24 * 60 * 60 * 1000;
         self.created_at = DateTime::now();
