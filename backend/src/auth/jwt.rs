@@ -41,6 +41,8 @@ pub fn ensure_keys_exist() -> anyhow::Result<()> {
         // write public key PEM
         let pub_pem = public.to_pkcs1_pem(Default::default())?;
         fs::write(DEFAULT_PUB_KEY, pub_pem.as_bytes())?;
+
+        println!("Generated new RSA keypair and saved to {} and {}", DEFAULT_PRIV_KEY, DEFAULT_PUB_KEY);
     }
 
     Ok(())
