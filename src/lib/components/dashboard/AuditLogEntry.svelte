@@ -25,7 +25,7 @@
                 return "You";
             } else if (users.find(u => u._id == entityId) != null) {;
                 const u = users.find(u => u._id == entityId)!;
-                return `${u.firstName}${u.lastName.length > 0 ? ' ' : ''}${u.lastName}`;
+                return `${u.firstName} ${u.lastName}`.trim();
             } else {
                 return entityId;
             }
@@ -65,7 +65,7 @@
             const tokenId = auditLog.reason.split('|')[2];
             return `${target} ${action} ${target.toUpperCase() == 'YOU' ? 'your' : 'their'} profile using the registration code <span class="text-[14px] opacity-75">${getEntityName(AuditLogEntityType.RegistrationToken, tokenId)}</span>.`;
         } else if (auditLog.entityType == AuditLogEntityType.User && auditLog.action == AuditLogAction.Update && auditLog.reason.toUpperCase().includes('DEVICE REMOVED')) {
-            return `${author} removed the device <span class="text-[14px] opacity-75">${auditLog.oldValues?.os?.toUpperCase() != "OTHER" && auditLog.oldValues?.os?.toUpperCase() != 'UNKNOWN' ? auditLog.oldValues.os : auditLog.oldValues.userAgent}</span> ${target.toUpperCase() == 'YOU' ? '' : `from ${target}`}.`;
+            return `${author} removed the device <span class="text-[14px] opacity-75">${auditLog.oldValues?.os?.toUpperCase() != "OTHER" && auditLog.oldValues?.os?.toUpperCase() != 'UNKNOWN' ? auditLog.oldValues.os : auditLog.oldValues.userAgent}</span> ${target.toUpperCase() == 'YOU' ? '' : `from ${target}`}.`.trim();
         } else if (auditLog.entityType == AuditLogEntityType.User && auditLog.action == AuditLogAction.Update && auditLog.reason.toUpperCase().includes('ALL DEVICES REMOVED')) {
             return `${author} removed all ${target.toUpperCase() == 'YOU' ? 'your devices' : `devices from ${target}`}.`;
         } else if (auditLog.entityType == AuditLogEntityType.Passkey) {
