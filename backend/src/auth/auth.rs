@@ -278,10 +278,12 @@ impl<'r> FromRequest<'r> for IpAddr {
     type Error = (Status, ());
 
     async fn from_request(request: &'r Request<'_>) -> Outcome<IpAddr, (Status, Self::Error), Status> {
-        if let Some(ip) = request.real_ip() {
-            Outcome::Success(IpAddr { addr: Some(ip.to_string()) })
-        } else {
-            Outcome::Success(IpAddr { addr: None })
+        match request.headers().get_one("CF-Connecting-IP") {
+            Some(cloudflare_client_ip) => Outcome::Success(IpAddr { addr: Some(cloudflare_client_ip.to_string()) }),
+            None => match request.client_ip() {
+                Some(ip) => Outcome::Success(IpAddr { addr: Some(ip.to_string()) }),
+                None => Outcome::Success(IpAddr { addr: None })
+            }
         }
     }
 }
