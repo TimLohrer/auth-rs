@@ -407,7 +407,7 @@ impl User {
     #[allow(unused)]
     pub async fn update_data_storage_key(&mut self, connection: &Connection<AuthRsDatabase>, sandbox_id: &str, key: &str, value: Value) -> Result<(), HttpResponse<()>> {
         let mut storage = self.data_storage.get(sandbox_id).cloned().unwrap_or_default();
-        storage.insert(key.to_string(), value.clone());
+        storage.insert(key.to_string(), value);
         self.data_storage.insert(sandbox_id.to_string(), storage);
         self.update(connection).await?;
         Ok(())
