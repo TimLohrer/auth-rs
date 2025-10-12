@@ -261,6 +261,7 @@ fn rocket() -> _ {
                 routes::users::mfa::enable_totp_mfa,
                 routes::users::mfa::disable_totp_mfa,
                 routes::users::update::update_user,
+                routes::users::get_storage::get_full_user_data_storage,
                 routes::users::get_storage::get_user_data_storage,
                 routes::users::get_storage::get_user_data_storage_key,
                 routes::users::update_storage::update_user_data_storage_key,

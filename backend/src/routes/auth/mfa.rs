@@ -103,7 +103,7 @@ async fn process_mfa(
     } else {
         let mut user = flow.user.clone();
 
-        flow.user.cleanup_expired_devices(&db).await.ok();
+        flow.user.clone().cleanup_expired_devices(&db).await.ok();
 
         let device = match user.get_device(&db, os, user_agent, ip)
         .await {

@@ -105,6 +105,16 @@ impl DatabaseMigrator {
             db.collection::<OAuthToken>(OAuthToken::COLLECTION_NAME).delete_many(doc! {}, None)
                 .await
                 .map_err(|e| format!("Failed to delete OAuth tokens during migration: {:?}", e))?;
+
+            println!("Clearing all additional data from all users...");
+            db.collection::<User1dot0dot24>(User::COLLECTION_NAME)
+                .update_many(
+                    doc! {},
+                    doc! { "$set": { "dataStorage": {} } },
+                    None,
+                )
+                .await
+                .map_err(|e| format!("Failed to clear user dataStorage during migration: {:?}", e))?;
             
             db_version = "1.0.24".to_string();
             println!("Migration to version 1.0.24 completed.");

@@ -42,10 +42,16 @@ pub async fn update_user_data_storage_key(
     if !User::can_update_data_storage_key(req_entity.clone(), &uuid) {
         return json_response(HttpResponse::forbidden("Forbidden"));
     }
+    
+    let sandbox_id = if req_entity.is_token() {
+        req_entity.token.as_ref().unwrap().id
+    } else {
+        req_entity.user_id
+    }.to_string();
 
     match User::get_by_id(uuid, &db).await {
         Ok(mut user) => {
-            match user.update_data_storage_key(&db, key, value.clone()).await {
+            match user.update_data_storage_key(&db, &sandbox_id, key, value.clone()).await {
                 Ok(_) => json_response(HttpResponse::success("Updated user storage key", HashMap::from([(key.to_string(), value)]))),
                 Err(_) => json_response(HttpResponse::internal_error("Failed to update user storage key")),
             }
@@ -71,11 +77,17 @@ pub async fn delete_user_data_storage_key(
         return json_response(HttpResponse::forbidden("Forbidden"));
     }
 
+    let sandbox_id = if req_entity.is_token() {
+        req_entity.token.as_ref().unwrap().id
+    } else {
+        req_entity.user_id
+    }.to_string();
+
     match User::get_by_id(uuid, &db).await {
         Ok(mut user) => {
-            match user.get_data_storage_by_key(key) {
+            match user.get_data_storage_by_key(&sandbox_id, key) {
                 Some(value) => {
-                    match user.delete_data_storage_key(&db, key).await {
+                    match user.delete_data_storage_key(&db, &sandbox_id, key).await {
                         Ok(_) => json_response(HttpResponse::success_no_data("Deleted user storage key")),
                         Err(_) => json_response(HttpResponse::internal_error("Failed to delete user storage key")),
                     }
