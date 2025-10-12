@@ -269,10 +269,10 @@ async fn update_user_internal(
     let user = User::get_by_id(uuid, &db)
         .await
         .map_err(|_| UserError::NotFound(uuid))?;
-    let mut update = UserUpdate::new(user);
+    let mut update = UserUpdate::new(user.clone());
 
     // Apply updates
-    if !req_entity.user.as_ref().unwrap().is_system_admin() {
+    if !user.is_system_admin() {
         if let Some(email) = data.email {
             update.update_email(email, &db).await?;
         }
