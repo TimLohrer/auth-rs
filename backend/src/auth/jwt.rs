@@ -29,8 +29,8 @@ pub fn ensure_keys_exist() -> anyhow::Result<()> {
     }
 
     if !Path::new(DEFAULT_PRIV_KEY).exists() || !Path::new(DEFAULT_PUB_KEY).exists() {
-        // generate 2048-bit RSA keypair
-        let private = RsaPrivateKey::new(&mut OsRng, 2048)
+        // generate 4096-bit RSA keypair
+        let private = RsaPrivateKey::new(&mut OsRng, 4096)
             .context("Failed to generate RSA private key")?;
         let public = RsaPublicKey::from(&private);
 
