@@ -257,6 +257,7 @@ fn rocket() -> _ {
                 routes::users::me::get_current_user,
                 // this is mainly used for oauth apps
                 routes::users::me::get_current_user_plain,
+                routes::users::me::get_current_user_openid,
                 routes::users::mfa::enable_totp_mfa,
                 routes::users::mfa::disable_totp_mfa,
                 routes::users::update::update_user,

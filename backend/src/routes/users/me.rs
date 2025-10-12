@@ -1,6 +1,7 @@
 use rocket::http::Status;
 use rocket::{get, serde::json::Json};
 use rocket_db_pools::Connection;
+use serde_json::Value;
 
 use crate::models::user::UserDTO;
 use crate::utils::response::json_response;
@@ -66,6 +67,44 @@ pub async fn get_current_user_plain(
 
     match User::get_by_id(req_entity.user_id, &db).await {
         Ok(user) => (Status::Ok, Some(Json(user.to_dto(User::can_read_data_storage_key(req_entity.clone(), &req_entity.user_id))))),
+        Err(err) => (Status::NotFound, None),
+    }
+}
+
+#[allow(unused)]
+#[get("/users/@me/openid", format = "json")]
+pub async fn get_current_user_openid(
+    db: Connection<AuthRsDatabase>,
+    req_entity: AuthEntity,
+) -> (Status, Option<Json<Value>>) {
+    if req_entity.is_token()
+        && (!req_entity
+            .token
+            .clone()
+            .unwrap()
+            .check_scope(OAuthScope::Users(ScopeActions::Read))
+            || req_entity
+                .token
+                .clone()
+                .unwrap()
+                .check_scope(OAuthScope::Users(ScopeActions::All)))
+    {
+        return (Status::Unauthorized, None);
+    }
+
+    match User::get_by_id(req_entity.user_id, &db).await {
+        Ok(user) => {
+            let mut user_dto = user.to_dto(User::can_read_data_storage_key(req_entity.clone(), &req_entity.user_id));
+            let mut value = serde_json::to_value(&user_dto).unwrap_or(Value::Null);
+            if let Value::Object(ref mut map) = value {
+                map.remove("_id");
+                map.insert(
+                    "sub".to_string(),
+                    serde_json::to_value(user_dto.id.to_string()).unwrap_or(Value::Null),
+                );
+            }
+            (Status::Ok, Some(Json(value)))
+        },
         Err(err) => (Status::NotFound, None),
     }
 }
