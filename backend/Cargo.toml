@@ -24,3 +24,4 @@ regex = "1.11.3"
 rsa = { version = "0.9" }
 jsonwebtoken = "8"
 user-agent-parser = { version = "0.3.6", features = ["rocket"] }
+serde_urlencoded = "0.7.1"

@@ -1,5 +1,8 @@
+use std::collections::HashMap;
+
 use mongodb::bson::Uuid;
-use rocket::http::Status;
+use rocket::http::{ContentType, Status};
+use rocket::{Data, Request};
 use rocket::{
     form::Form,
     post,
@@ -7,6 +10,7 @@ use rocket::{
     FromForm,
 };
 use rocket_db_pools::Connection;
+use rocket::data::ToByteUnit;
 
 use crate::{
     db::AuthRsDatabase,
@@ -111,6 +115,55 @@ pub async fn get_oauth_token_json(
     }
 }
 
+#[post("/oauth/token/debug", data = "<body>")]
+pub async fn token_raw(
+    db: Connection<AuthRsDatabase>,
+    content_type: &ContentType,
+    body: Data<'_>,
+) -> (Status, Option<Json<TokenOAuthResponse>>) {
+    let limit = 64.kibibytes();
+    let s = match body.open(limit).into_string().await {
+        Ok(s) => s,
+        Err(_) => return (Status::BadRequest, None),
+    };
+    let mut map = std::collections::HashMap::new();
+    if content_type.is_form() {
+        map = serde_urlencoded::from_str::<HashMap<String, String>>(&s).unwrap_or_default();
+    } else if content_type.is_json() {
+        // optionally parse JSON
+    } else {
+        // some clients send Basic auth (no client_id/secret in body)
+        println!("Unsupported content type: {}", content_type);
+        println!("Body: {:?}", s);
+        return (Status::BadRequest, None);
+    }
+
+    // fallback to Authorization header if client_id/secret missing
+    let client_id = map.get("client_id")
+        .cloned()
+        .unwrap_or_default();
+
+    match handle_token_request(
+        db,
+        client_id,
+        map.get("client_secret")
+            .cloned()
+            .unwrap_or_default(),
+        "code".to_string(),
+        map.get("code")
+            .cloned()
+            .unwrap_or_else(|| "0".to_string())
+            .parse::<u32>()
+            .unwrap_or_default(),
+        map.get("redirect_uri")
+            .cloned()
+            .unwrap_or_default(),
+    ).await
+    {
+        Ok(response) => (Status::Ok, Some(Json(response))),
+        Err(status) => (status, None),
+    }
+}
 
 async fn handle_token_request(
     db: Connection<AuthRsDatabase>,
