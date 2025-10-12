@@ -122,7 +122,7 @@ impl DatabaseMigrator {
     }
 
     async fn update_version_history(db: &Database, new_version: &str) {
-        let mut settings = match new_version.starts_with("1.0.") && new_version.split(".").last().unwrap().parse::<u32>().unwrap() <= 24 {
+        let mut settings = match new_version.starts_with("1.0.") && new_version.split(".").last().unwrap().parse::<u32>().unwrap() <= 22 {
             true => {
                 // Special case for initializing settings to enable migrations from versions 1.0.22 or older
                 #[derive(Debug, Clone, Serialize, Deserialize)]
