@@ -29,6 +29,8 @@ services:
       - SYSTEM_EMAIL=admin@example.com
       - SYSTEM_PASSWORD= # Create a strong system user password here
       - PUBLIC_BASE_URL=https://auth.example.com
+    volumes:
+      - auth-rs-data:/app/data
     restart: unless-stopped
 
   frontend:
@@ -45,3 +47,4 @@ services:
 volumes:
   mongodb_data:
     driver: local 
+  auth-rs-data:
