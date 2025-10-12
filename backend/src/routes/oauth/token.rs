@@ -29,16 +29,6 @@ pub struct TokenOAuthFieldData {
     pub redirect_uri: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-#[serde(crate = "rocket::serde")]
-pub struct TokenOAuthJsonData {
-    pub client_id: String,
-    pub client_secret: String,
-    pub grant_type: String,
-    pub code: u32,
-    pub redirect_uri: String,
-}
-
 #[derive(Debug, Deserialize)]
 #[serde(crate = "rocket::serde")]
 #[serde(rename_all = "camelCase")]
