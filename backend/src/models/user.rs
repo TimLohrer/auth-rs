@@ -44,7 +44,7 @@ pub struct User {
     pub totp_secret: Option<String>,
     pub devices: Vec<Device>,
     pub roles: Vec<Uuid>,
-    pub data_storage: HashMap<String, Value>,
+    pub data_storage: HashMap<String, HashMap<String, Value>>,
     pub disabled: bool,
     pub created_at: DateTime,
 }
@@ -61,7 +61,7 @@ pub struct UserDTO {
     pub roles: Vec<Uuid>,
     pub mfa: bool,
     pub devices: Vec<DeviceDTO>,
-    pub data_storage: Option<HashMap<String, Value>>,
+    pub data_storage: Option<HashMap<String, HashMap<String, Value>>>,
     pub disabled: bool,
     pub created_at: DateTime,
 }
@@ -400,20 +400,27 @@ impl User {
     }
 
     #[allow(unused)]
-    pub fn get_data_storage_by_key(&self, key: &str) -> Option<Value> {
-        self.data_storage.get(key).cloned()
+    pub fn get_data_storage_by_key(&self, sandbox_id: &str, key: &str) -> Option<Value> {
+        self.data_storage.get(sandbox_id).cloned().and_then(|storage| storage.get(key).cloned())
     }
 
     #[allow(unused)]
-    pub async fn update_data_storage_key(&mut self, connection: &Connection<AuthRsDatabase>, key: &str, value: Value) -> Result<(), HttpResponse<()>> {
-        self.data_storage.insert(key.to_string(), value);
+    pub async fn update_data_storage_key(&mut self, connection: &Connection<AuthRsDatabase>, sandbox_id: &str, key: &str, value: Value) -> Result<(), HttpResponse<()>> {
+        let mut storage = self.data_storage.get(sandbox_id).cloned().unwrap_or_default();
+        storage.insert(key.to_string(), value.clone());
+        self.data_storage.insert(sandbox_id.to_string(), storage);
         self.update(connection).await?;
         Ok(())
     }
 
     #[allow(unused)]
-    pub async fn delete_data_storage_key(&mut self, connection: &Connection<AuthRsDatabase>, key: &str) -> Result<(), HttpResponse<()>> {
-        self.data_storage.remove(key);
+    pub async fn delete_data_storage_key(&mut self, connection: &Connection<AuthRsDatabase>, sandbox_id: &str, key: &str) -> Result<(), HttpResponse<()>> {
+        if let Some(storage) = self.data_storage.get_mut(sandbox_id) {
+            storage.remove(key);
+            if storage.is_empty() {
+                self.data_storage.remove(sandbox_id);
+            }
+        }
         self.update(connection).await?;
         Ok(())
     }
