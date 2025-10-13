@@ -8,11 +8,12 @@
     export let placeholder: string | null = null;
     export let autofocus: boolean | null = false;
     export let autocomplete: FullAutoFill | null = null;
+    export let disabled: boolean | null = false;
 
     let hidePassword = true;
 </script>
 
-<div class="flex flex-col w-[100%] items-center justify-center">
+<div class="flex flex-col w-[100%] items-center justify-center" class:opacity-50={disabled}>
     {#if label.length > 0}
         <p class="text-[14px] self-start h-[17.5px] opacity-50">{label}</p>
     {/if}
@@ -22,6 +23,7 @@
         placeholder={placeholder ?? label ?? ''}
         bind:value
         autocomplete={autocomplete}
+        disabled={disabled}
         class="border-[1.5px] border-gray-300 rounded-md opacity-75 w-full"
         style="padding: 5px 10px; margin-top: 5px; margin-bottom: 10px;"
         on:input={type != 'number' ? null : (e) => (e.target as HTMLInputElement).value = Math.floor(Number((e.target as HTMLInputElement).value)).toString()}

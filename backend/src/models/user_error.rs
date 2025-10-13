@@ -49,6 +49,9 @@ pub enum UserError {
     #[error("Password to short")]
     PasswordToShort,
 
+    #[error("Old password is incorrect")]
+    IncorrectOldPassword,
+
     #[error("Invalid email")]
     InvalidEmail,
 
@@ -136,6 +139,11 @@ impl<T> From<UserError> for HttpResponse<T> {
             UserError::PasswordToShort => HttpResponse {
                 status: 400,
                 message: "Password to short".to_string(),
+                data: None,
+            },
+            UserError::IncorrectOldPassword => HttpResponse {
+                status: 400,
+                message: "Old password is incorrect".to_string(),
                 data: None,
             },
             UserError::InvalidEmail => HttpResponse {

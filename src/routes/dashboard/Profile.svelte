@@ -21,13 +21,15 @@
     let editUserLastName: string = '';
     let editUserPassword: string = '';
     let editUserPasswordConfirm: string = '';
+    let editUserOldPassword: string = '';
 
     $: editUserDataIsValid = () => {
         const emailValid = editUserEmail.length >= 5 && editUserEmail.includes('@') && editUserEmail.includes('.');
         const nameValid = editUserFirstName.length > 0;
         const passwordValid = (editUserPassword.length < 1 && editUserPasswordConfirm.length < 1) || (editUserPassword.length > 7 && editUserPassword === editUserPasswordConfirm);
+        const oldPasswordValid = editUserOldPassword.length > 0 || (editUserPassword.length < 1 && editUserPasswordConfirm.length < 1);
 
-        return emailValid && nameValid && passwordValid;
+        return emailValid && nameValid && passwordValid && oldPasswordValid;
     }
 
     function showEditUserPopup() {
@@ -37,6 +39,7 @@
         editUserLastName = user.lastName;
         editUserPassword = '';
         editUserPasswordConfirm = '';
+        editUserOldPassword = '';
     }
     
     onMount(async () => {
@@ -59,6 +62,7 @@
             {#if !User.isSystemAdmin(user)}
                 <TextInput type="password" label="Password" bind:value={editUserPassword} autocomplete="new-password" />
                 <TextInput type="password" label="Confirm Password" bind:value={editUserPasswordConfirm} autocomplete="new-password" />
+                <TextInput type="password" label="Old Password" bind:value={editUserOldPassword} disabled={editUserPassword.length < 1} autocomplete="current-password" />
             {/if}
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
             <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -67,7 +71,7 @@
                 style="margin-top: 20px; margin-bottom: 10px;"
                 on:click={editUserDataIsValid() ? () => {
                     editUserPopup = false;
-                    api.updateUser(user!, new UserUpdates({ email: editUserEmail, password: editUserPassword.length < 1 ? null : editUserPassword, firstName: editUserFirstName, lastName: editUserLastName, roles: null, disabled: null }))
+                    api.updateUser(user!, new UserUpdates({ email: editUserEmail, password: editUserPassword.length < 1 ? null : editUserPassword, oldPassword: editUserPassword.length < 1 ? null : editUserOldPassword, firstName: editUserFirstName, lastName: editUserLastName, roles: null, disabled: null }))
                         .then(editedUser => {
                             user = editedUser;
                         })

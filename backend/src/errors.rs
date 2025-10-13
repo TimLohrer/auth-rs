@@ -350,6 +350,9 @@ impl From<UserError> for AppError {
             UserError::PasswordToShort => {
                 AppError::InvalidOrMissingFields("Password too short".to_string())
             }
+            UserError::IncorrectOldPassword => {
+                AppError::InvalidOrMissingFields("Old password is incorrect".to_string())
+            }
             UserError::RegistrationClosed => AppError::MissingPermissions,
             UserError::RegistrationCodeInvalid => {
                 AppError::InvalidOrMissingFields("Registration code invalid".to_string())
