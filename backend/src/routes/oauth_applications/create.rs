@@ -5,6 +5,7 @@ use rocket::{
 };
 use rocket_db_pools::Connection;
 
+use crate::models::oauth_application::OAuthApplicationDTO;
 use crate::utils::response::json_response;
 use crate::SETTINGS;
 use crate::{
@@ -32,7 +33,7 @@ pub async fn create_oauth_application(
     db: Connection<AuthRsDatabase>,
     req_entity: AuthEntity,
     data: Json<CreateOAuthApplicationData>,
-) -> (Status, Json<HttpResponse<OAuthApplication>>) {
+) -> (Status, Json<HttpResponse<OAuthApplicationDTO>>) {
     let data = data.into_inner();
 
     if !req_entity.is_user() {
@@ -80,7 +81,7 @@ pub async fn create_oauth_application(
             json_response(HttpResponse {
                 status: 201,
                 message: "OAuth Application created".to_string(),
-                data: Some(oauth_application),
+                data: Some(oauth_application.to_dto()),
             })
         }
         Err(err) => json_response(err.into()),

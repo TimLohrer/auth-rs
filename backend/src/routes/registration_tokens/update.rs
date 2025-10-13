@@ -1,5 +1,5 @@
 use crate::models::registration_token::{
-    RegistrationToken, RegistrationTokenError, RegistrationTokenResult,
+    RegistrationToken, RegistrationTokenDTO, RegistrationTokenError, RegistrationTokenResult
 };
 use crate::models::role::Role;
 use crate::utils::parse_uuid::parse_uuid;
@@ -39,11 +39,11 @@ pub async fn update_registration_token(
     req_entity: AuthEntity,
     id: &str,
     data: Json<UpdateRegistrationTokenData>,
-) -> (Status, Json<HttpResponse<RegistrationToken>>) {
+ ) -> (Status, Json<HttpResponse<RegistrationTokenDTO>>) {
     let result = update_registration_token_internal(db, req_entity, id, data.into_inner()).await;
 
     match result {
-        Ok(app) => json_response(HttpResponse::success("Registration token updated", app)),
+        Ok(app) => json_response(HttpResponse::success("Registration token updated", app.to_dto())),
         Err(err) => json_response(err.into()),
     }
 }

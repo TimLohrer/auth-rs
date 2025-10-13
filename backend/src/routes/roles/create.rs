@@ -5,6 +5,7 @@ use rocket::{
 };
 use rocket_db_pools::Connection;
 
+use crate::models::role::RoleDTO;
 use crate::utils::response::json_response;
 use crate::{
     auth::auth::AuthEntity,
@@ -28,7 +29,7 @@ pub async fn create_role(
     db: Connection<AuthRsDatabase>,
     req_entity: AuthEntity,
     data: Json<CreateRoleData>,
-) -> (Status, Json<HttpResponse<Role>>) {
+) -> (Status, Json<HttpResponse<RoleDTO>>) {
     let data = data.into_inner();
 
     if !req_entity.is_user() {
@@ -71,7 +72,7 @@ pub async fn create_role(
             json_response(HttpResponse {
                 status: 201,
                 message: "Role created".to_string(),
-                data: Some(role),
+                data: Some(role.to_dto()),
             })
         }
         Err(err) => json_response(err.into()),

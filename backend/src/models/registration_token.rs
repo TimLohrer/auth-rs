@@ -109,6 +109,22 @@ pub struct RegistrationToken {
     pub created_at: DateTime,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+#[serde(rename_all = "camelCase")]
+pub struct RegistrationTokenDTO {
+    pub id: Uuid,
+    pub code: String,
+    pub max_uses: u32,
+    pub uses: Vec<Uuid>,
+    pub expires_in: Option<u64>,
+    pub auto_roles: Vec<Uuid>,
+    #[serde(with = "crate::utils::serde_unix_timestamp::option")]
+    pub expires_from: Option<DateTime>,
+    #[serde(with = "crate::utils::serde_unix_timestamp")]
+    pub created_at: DateTime,
+}
+
 impl RegistrationToken {
     pub const COLLECTION_NAME: &'static str = "registration-tokens";
 
@@ -141,6 +157,19 @@ impl RegistrationToken {
             },
             created_at: DateTime::now(),
         })
+    }
+
+    pub fn to_dto(&self) -> RegistrationTokenDTO {
+        RegistrationTokenDTO {
+            id: self.id,
+            code: self.code.clone(),
+            max_uses: self.max_uses,
+            uses: self.uses.clone(),
+            expires_in: self.expires_in,
+            auto_roles: self.auto_roles.clone(),
+            expires_from: self.expires_from,
+            created_at: self.created_at,
+        }
     }
 
     #[allow(unused)]

@@ -58,6 +58,39 @@ pub struct AuditLog {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
+#[serde(rename_all = "camelCase")]
+pub struct AuditLogDTO {
+    #[serde(rename = "_id")]
+    pub id: Uuid,
+    pub entity_id: String,
+    pub entity_type: AuditLogEntityType,
+    pub action: AuditLogAction,
+    pub reason: String,
+    pub author_id: Uuid,
+    pub old_values: Option<HashMap<String, String>>,
+    pub new_values: Option<HashMap<String, String>>,
+    #[serde(with = "crate::utils::serde_unix_timestamp")]
+    pub created_at: DateTime,
+}
+
+impl AuditLog {
+    pub fn to_dto(&self) -> AuditLogDTO {
+        AuditLogDTO {
+            id: self.id,
+            entity_id: self.entity_id.clone(),
+            entity_type: self.entity_type.clone(),
+            action: self.action.clone(),
+            reason: self.reason.clone(),
+            author_id: self.author_id,
+            old_values: self.old_values.clone(),
+            new_values: self.new_values.clone(),
+            created_at: self.created_at,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub enum AuditLogAction {
     Create,
     Update,

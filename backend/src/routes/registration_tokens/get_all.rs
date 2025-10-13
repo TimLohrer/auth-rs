@@ -1,3 +1,4 @@
+use crate::models::registration_token::RegistrationTokenDTO;
 use crate::utils::response::json_response;
 use crate::{
     auth::auth::AuthEntity,
@@ -14,7 +15,7 @@ use rocket_db_pools::Connection;
 pub async fn get_all_registration_tokens(
     db: Connection<AuthRsDatabase>,
     req_entity: AuthEntity,
-) -> (Status, Json<HttpResponse<Vec<RegistrationToken>>>) {
+) -> (Status, Json<HttpResponse<Vec<RegistrationTokenDTO>>>) {
     if !req_entity.is_user() || !req_entity.user.unwrap().is_admin() {
         return json_response(HttpResponse::forbidden(
             "Only admins can view registration tokens",
@@ -26,8 +27,10 @@ pub async fn get_all_registration_tokens(
         Err(err) => return json_response(err.into()),
     };
 
+    let dtos = registration_tokens.into_iter().map(|t| t.to_dto()).collect::<Vec<_>>();
+
     json_response(HttpResponse::success(
         "Successfully retrieved all registration tokens",
-        registration_tokens,
+        dtos,
     ))
 }

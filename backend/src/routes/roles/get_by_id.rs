@@ -2,6 +2,7 @@ use rocket::http::Status;
 use rocket::{get, serde::json::Json};
 use rocket_db_pools::Connection;
 
+use crate::models::role::RoleDTO;
 use crate::utils::parse_uuid::parse_uuid;
 use crate::utils::response::json_response;
 use crate::{
@@ -20,7 +21,7 @@ pub async fn get_role_by_id(
     db: Connection<AuthRsDatabase>,
     req_entity: AuthEntity,
     id: &str,
-) -> (Status, Json<HttpResponse<Role>>) {
+) -> (Status, Json<HttpResponse<RoleDTO>>) {
     if !req_entity.is_token() {
         return json_response(HttpResponse::bad_request("Missing token"));
     }
@@ -45,7 +46,7 @@ pub async fn get_role_by_id(
     };
 
     match Role::get_by_id(uuid, &db).await {
-        Ok(role) => json_response(HttpResponse::success("Found role by id", role)),
+        Ok(role) => json_response(HttpResponse::success("Found role by id", role.to_dto())),
         Err(err) => json_response(err.into()),
     }
 }

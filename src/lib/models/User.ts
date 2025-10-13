@@ -10,7 +10,7 @@ export default class User {
 	devices: Device[];
 	dataStorage: Record<string, any> | null;
 	disabled: boolean;
-	createdAt: any;
+	createdAt: number;
 
 	constructor(
 		_id: string,
@@ -20,9 +20,9 @@ export default class User {
 		roles: string[],
 		mfa: boolean,
 		devices: Device[],
-		dataStorage: Record<string, any> | null,
+		dataStorage: Record<string, Record<string, any>> | null,
 		disabled: boolean,
-		createdAt: any
+		createdAt: number
 	) {
 		this._id = _id;
 		this.email = email;
@@ -37,8 +37,7 @@ export default class User {
 	}
 
 	static getCreatedAt(user: User): Date {
-		// @ts-ignore
-		return new Date(parseInt(user.createdAt.$date.$numberLong) ?? 0);
+		return new Date(user.createdAt);
 	}
 
 	static isAdmin(user: User): boolean {

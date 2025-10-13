@@ -2,6 +2,7 @@ use rocket::http::Status;
 use rocket::{get, serde::json::Json};
 use rocket_db_pools::Connection;
 
+use crate::models::audit_log::AuditLogDTO;
 use crate::utils::response::json_response;
 use crate::{
     auth::auth::AuthEntity,
@@ -20,7 +21,7 @@ pub async fn get_audit_log_by_entity_id(
     req_entity: AuthEntity,
     r#type: &str,
     id: &str,
-) -> (Status, Json<HttpResponse<Vec<AuditLog>>>) {
+) -> (Status, Json<HttpResponse<Vec<AuditLogDTO>>>) {
     if !req_entity.is_user() || !req_entity.user.unwrap().is_admin() {
         return json_response(HttpResponse::forbidden("Missing permissions!"));
     }
@@ -36,9 +37,9 @@ pub async fn get_audit_log_by_entity_id(
     };
 
     match AuditLog::get_by_entity_id(entity_uuid, entity_type, &db).await {
-        Ok(audit_log) => json_response(HttpResponse::success(
+        Ok(audit_logs) => json_response(HttpResponse::success(
             "Audit Logs found by entity id",
-            audit_log,
+            audit_logs.iter().map(|l| l.to_dto()).collect(),
         )),
         Err(err) => json_response(err.into()),
     }

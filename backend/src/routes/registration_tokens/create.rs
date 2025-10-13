@@ -6,6 +6,7 @@ use rocket::{
 };
 use rocket_db_pools::Connection;
 
+use crate::models::registration_token::RegistrationTokenDTO;
 use crate::models::role::Role;
 use crate::utils::response::json_response;
 use crate::DEFAULT_ROLE_ID;
@@ -34,7 +35,7 @@ pub async fn create_registration_token(
     db: Connection<AuthRsDatabase>,
     req_entity: AuthEntity,
     data: Json<CreateRegistrationTokenData>,
-) -> (Status, Json<HttpResponse<RegistrationToken>>) {
+ ) -> (Status, Json<HttpResponse<RegistrationTokenDTO>>) {
     let data = data.into_inner();
 
     if !req_entity.is_user() || !req_entity.user.unwrap().is_admin() {
@@ -91,7 +92,7 @@ pub async fn create_registration_token(
             json_response(HttpResponse {
                 status: 201,
                 message: "Registration token created".to_string(),
-                data: Some(registration_token),
+                data: Some(registration_token.to_dto()),
             })
         }
         Err(err) => json_response(err.into()),
