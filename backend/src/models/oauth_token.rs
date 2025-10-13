@@ -92,36 +92,7 @@ pub struct OAuthTokenDTO {
 }
 
 impl OAuthToken {
-    pub fn to_dto(&self) -> OAuthTokenDTO {
-        OAuthTokenDTO {
-            id: self.id,
-            application_id: self.application_id,
-            user_id: self.user_id,
-            token: self.token.clone(),
-            scope: self.scope.clone(),
-            expires_in: self.expires_in,
-            created_at: self.created_at,
-        }
-    }
-}
-
-impl OAuthToken {
     pub const COLLECTION_NAME: &'static str = "oauth-tokens";
-
-    /// Checks if the token is expired
-    pub fn is_expired(&self) -> bool {
-        let created_at = self.created_at.timestamp_millis() as u64;
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or(Duration::from_secs(0))
-            .as_millis() as u64;
-
-        // Convert expires_in from seconds to milliseconds
-        let expires_in_ms = self.expires_in * 1000;
-
-        // Check if the token has expired
-        now > created_at + expires_in_ms
-    }
 
     pub fn new(
         application_id: Uuid,
@@ -143,6 +114,18 @@ impl OAuthToken {
         })
     }
 
+    pub fn to_dto(&self) -> OAuthTokenDTO {
+        OAuthTokenDTO {
+            id: self.id,
+            application_id: self.application_id,
+            user_id: self.user_id,
+            token: self.token.clone(),
+            scope: self.scope.clone(),
+            expires_in: self.expires_in,
+            created_at: self.created_at,
+        }
+    }
+
     #[allow(unused)]
     pub async fn insert(
         &self,
@@ -157,6 +140,19 @@ impl OAuthToken {
                 err
             ))),
         }
+    }
+
+    pub fn is_expired(&self) -> bool {
+        let created_at = self.created_at.timestamp_millis() as u64;
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or(Duration::from_secs(0))
+            .as_millis() as u64;
+
+        // Convert expires_in from seconds to milliseconds
+        let expires_in_ms = self.expires_in * 1000;
+
+        now > created_at + expires_in_ms
     }
 
     #[allow(unused)]

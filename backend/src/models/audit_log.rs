@@ -73,22 +73,6 @@ pub struct AuditLogDTO {
     pub created_at: DateTime,
 }
 
-impl AuditLog {
-    pub fn to_dto(&self) -> AuditLogDTO {
-        AuditLogDTO {
-            id: self.id,
-            entity_id: self.entity_id.clone(),
-            entity_type: self.entity_type.clone(),
-            action: self.action.clone(),
-            reason: self.reason.clone(),
-            author_id: self.author_id,
-            old_values: self.old_values.clone(),
-            new_values: self.new_values.clone(),
-            created_at: self.created_at,
-        }
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub enum AuditLogAction {
@@ -168,6 +152,20 @@ impl AuditLog {
             old_values,
             new_values,
             created_at: DateTime::now(),
+        }
+    }
+
+    pub fn to_dto(&self) -> AuditLogDTO {
+        AuditLogDTO {
+            id: self.id,
+            entity_id: self.entity_id.clone(),
+            entity_type: self.entity_type.clone(),
+            action: self.action.clone(),
+            reason: self.reason.clone(),
+            author_id: self.author_id,
+            old_values: self.old_values.clone(),
+            new_values: self.new_values.clone(),
+            created_at: self.created_at,
         }
     }
 

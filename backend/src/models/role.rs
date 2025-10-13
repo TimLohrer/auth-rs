@@ -128,17 +128,6 @@ pub struct RoleDTO {
 }
 
 impl Role {
-    pub fn to_dto(&self) -> RoleDTO {
-        RoleDTO {
-            id: self.id,
-            name: self.name.clone(),
-            system: self.system,
-            created_at: self.created_at,
-        }
-    }
-}
-
-impl Role {
     pub const COLLECTION_NAME: &'static str = "roles";
 
     pub fn new(name: String) -> RoleResult<Self> {
@@ -148,6 +137,15 @@ impl Role {
             system: false,
             created_at: DateTime::now(),
         })
+    }
+
+    pub fn to_dto(&self) -> RoleDTO {
+        RoleDTO {
+            id: self.id,
+            name: self.name.clone(),
+            system: self.system,
+            created_at: self.created_at,
+        }
     }
 
     pub fn new_system(id: Uuid, name: String) -> RoleResult<Self> {
