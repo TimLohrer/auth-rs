@@ -10,7 +10,7 @@ LABEL org.opencontainers.image.authors="Tim Lohrer"
 # Copy the actual source code
 COPY src ./src
 COPY Cargo.toml Rocket.toml ./
-COPY data/ua_regex.yaml ./data/ua_regex.yaml
+COPY data/ua_regex.yaml ./static/ua_regex.yaml
 
 ENV ROCKET_ADDRESS=0.0.0.0
 ENV VERSION=$VERSION
@@ -37,7 +37,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy the binary from the builder stage
 COPY --from=builder /app/target/release/auth-rs /app/auth-rs
-COPY --from=builder /app/data ./temp-data
+COPY --from=builder /app/static /app/static
 
 # Expose build version as a label
 LABEL org.opencontainers.image.version=$VERSION
