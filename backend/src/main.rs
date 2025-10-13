@@ -17,9 +17,9 @@ use models::{role::Role, settings::Settings, user::User};
 use mongodb::bson::{doc, Uuid};
 use rocket::{
     fairing::AdHoc,
-    http::Method::{Connect, Delete, Get, Patch, Post, Put, Head, Options},
+    http::Method::{Connect, Delete, Get, Head, Options, Patch, Post, Put},
     launch, routes,
-    tokio::sync::Mutex,
+    tokio::{fs, sync::Mutex},
 };
 use rocket_cors::{AllowedHeaders, AllowedOrigins, CorsOptions};
 use rocket_db_pools::{mongodb::Collection, Database};
@@ -215,7 +215,6 @@ fn rocket() -> _ {
 
     rocket::custom(fig)
         .manage(oidc_keys)
-        .manage(UserAgentParser::from_path("data/ua_regex.yaml").unwrap())
         .attach(db::AuthRsDatabase::init())
         .attach(cors.to_cors().expect("Failed to create CORS fairing"))
         .attach(AdHoc::try_on_ignite("Default Values", |rocket| async {
@@ -227,6 +226,8 @@ fn rocket() -> _ {
                 }
             };
 
+            fs::copy("temp-data/ua_regex.yaml", "data/ua_regex.yaml").await.expect("Failed to copy ua_regex.yaml.");
+            
             match initialize_database(db).await {
                 Ok(_) => Ok(rocket),
                 Err(err) => {
@@ -235,6 +236,7 @@ fn rocket() -> _ {
                 }
             }
         }))
+        .manage(UserAgentParser::from_path("data/ua_regex.yaml").unwrap())
         .mount(
             "/api",
             routes![

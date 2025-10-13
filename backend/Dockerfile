@@ -37,7 +37,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy the binary from the builder stage
 COPY --from=builder /app/target/release/auth-rs /app/auth-rs
-COPY --from=builder /app/data ./data
+COPY --from=builder /app/data ./temp-data
 
 # Expose build version as a label
 LABEL org.opencontainers.image.version=$VERSION
