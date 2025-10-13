@@ -39,7 +39,7 @@ pub async fn update_registration_token(
     req_entity: AuthEntity,
     id: &str,
     data: Json<UpdateRegistrationTokenData>,
- ) -> (Status, Json<HttpResponse<RegistrationTokenDTO>>) {
+) -> (Status, Json<HttpResponse<RegistrationTokenDTO>>) {
     let result = update_registration_token_internal(db, req_entity, id, data.into_inner()).await;
 
     match result {
