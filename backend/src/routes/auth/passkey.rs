@@ -177,6 +177,17 @@ async fn process_authenticate_finish(
         .finish_discoverable_authentication(&data.credential, auth_state, all_passkeys.as_slice())
         .map_err(|_| ApiError::AppError(AppError::WebauthnError))?;
 
+    user.cleanup_expired_devices(&db).await.ok();
+    
+    let device = match user.get_device(&db, os, user_agent, ip)
+    .await {
+        Ok(device) => device,
+        Err(err) => match err {
+            UserError::MaxDevicesReached => return Err(ApiError::AppError(AppError::DeviceError("Maximum number of devices reached. Please remove an existing device before adding a new one.".to_string()))),
+            _ => return Err(ApiError::AppError(AppError::DeviceError("Failed to get or create device.".to_string()))),
+        },
+    };
+    
     AuditLog::new(
         user.clone().id.to_string(),
         AuditLogEntityType::User,
@@ -190,16 +201,6 @@ async fn process_authenticate_finish(
     .await
     .ok();
 
-    let device = match user.get_device(&db, os, user_agent, ip)
-        .await {
-            Ok(device) => device,
-            Err(err) => match err {
-                UserError::MaxDevicesReached => return Err(ApiError::AppError(AppError::DeviceError("Maximum number of devices reached. Please remove an existing device before adding a new one.".to_string()))),
-                _ => return Err(ApiError::AppError(AppError::DeviceError("Failed to get or create device.".to_string()))),
-            },
-        };
-
-    // Return success with user information and token
     Ok(PasskeyAuthenticateFinishResponse {
         user: user.to_dto(false),
         token: device.token,

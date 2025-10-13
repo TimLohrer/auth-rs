@@ -76,21 +76,6 @@ pub struct OAuthToken {
     pub created_at: DateTime,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(crate = "rocket::serde")]
-#[serde(rename_all = "camelCase")]
-pub struct OAuthTokenDTO {
-    #[serde(rename = "_id")]
-    pub id: Uuid,
-    pub application_id: Uuid,
-    pub user_id: Uuid,
-    pub token: String,
-    pub scope: Vec<OAuthScope>,
-    pub expires_in: u64,
-    #[serde(with = "crate::utils::serde_unix_timestamp")]
-    pub created_at: DateTime,
-}
-
 impl OAuthToken {
     pub const COLLECTION_NAME: &'static str = "oauth-tokens";
 
@@ -112,18 +97,6 @@ impl OAuthToken {
             expires_in,
             created_at: DateTime::now(),
         })
-    }
-
-    pub fn to_dto(&self) -> OAuthTokenDTO {
-        OAuthTokenDTO {
-            id: self.id,
-            application_id: self.application_id,
-            user_id: self.user_id,
-            token: self.token.clone(),
-            scope: self.scope.clone(),
-            expires_in: self.expires_in,
-            created_at: self.created_at,
-        }
     }
 
     #[allow(unused)]
