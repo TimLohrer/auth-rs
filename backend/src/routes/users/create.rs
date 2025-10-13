@@ -94,7 +94,7 @@ async fn create_user_internal(
         return Err(UserError::FirstNameRequired);
     }
     if data.password.len() < 8 {
-        return Err(UserError::PasswordToShort);
+        return Err(UserError::PasswordTooShort);
     }
 
     // Create new user

@@ -347,7 +347,7 @@ impl From<UserError> for AppError {
             UserError::FirstNameRequired => {
                 AppError::InvalidOrMissingFields("First name required".to_string())
             }
-            UserError::PasswordToShort => {
+            UserError::PasswordTooShort => {
                 AppError::InvalidOrMissingFields("Password too short".to_string())
             }
             UserError::IncorrectOldPassword => {

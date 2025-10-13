@@ -98,7 +98,7 @@ impl UserUpdate {
 
     fn update_password(&mut self, old_password: Option<String>, new_password: String) -> UserResult<()> {
         if new_password.len() < 8 {
-            return Err(UserError::PasswordToShort);
+            return Err(UserError::PasswordTooShort);
         }
 
         if old_password.is_some() && self.user.verify_password(&old_password.unwrap()).is_err() {
