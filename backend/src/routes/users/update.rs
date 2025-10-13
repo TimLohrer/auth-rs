@@ -30,6 +30,7 @@ use std::collections::HashMap;
 pub struct UpdateUserData {
     email: Option<String>,
     password: Option<String>,
+    old_password: Option<String>,
     first_name: Option<String>,
     last_name: Option<String>,
     roles: Option<Vec<Uuid>>,
@@ -95,15 +96,20 @@ impl UserUpdate {
         Ok(())
     }
 
-    fn update_password(&mut self, password: String) -> UserResult<()> {
-        if password.len() < 8 {
-            return Err(UserError::PasswordToShort);
+    fn update_password(&mut self, old_password: Option<String>, new_password: String) -> UserResult<()> {
+        if new_password.len() < 8 {
+            return Err(UserError::PasswordTooShort);
         }
+
+        if old_password.is_some() && self.user.verify_password(&old_password.unwrap()).is_err() {
+            return Err(UserError::IncorrectOldPassword);
+        }
+
         let salt =
             SaltString::from_b64(&self.user.salt).map_err(|_| UserError::PasswordHashingError)?;
         let argon2 = Argon2::default();
         let password_hash = argon2
-            .hash_password(password.as_bytes(), &salt)
+            .hash_password(new_password.as_bytes(), &salt)
             .map_err(|_| UserError::PasswordHashingError)?
             .to_string();
         self.update_field("password", "***********", "***********");
@@ -276,8 +282,8 @@ async fn update_user_internal(
         if let Some(email) = data.email {
             update.update_email(email, &db).await?;
         }
-        if let Some(password) = data.password {
-            update.update_password(password)?;
+        if data.password.is_some() && (data.old_password.is_some() || req_entity.user.as_ref().unwrap().is_admin()) {
+            update.update_password(data.old_password, data.password.unwrap())?;
         }
         if let Some(disabled) = data.disabled {
             update.update_disabled(disabled, req_user)?;

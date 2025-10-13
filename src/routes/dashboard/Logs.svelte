@@ -43,7 +43,7 @@
                     console.error(err);
                 });
             }
-            if (registrationTokens.length <= 0) {
+            if (isGlobalLogs && registrationTokens.length <= 0) {
                 api.getAllRegistrationTokens().then((newRegistrationTokens) => {
                     registrationTokens = newRegistrationTokens;
                 }).catch((err) => {
