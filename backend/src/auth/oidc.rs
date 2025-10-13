@@ -23,7 +23,7 @@ pub fn create_id_token(user_id: Uuid, aud: Uuid, data: Option<Value>) -> Result<
         sub: user_id.to_string(),
         aud: aud.to_string(),
         iss: get_base_domain(),
-        exp: (now + 60 * 60 * 24 * if user_id == aud { 30 } else { 0 }) as usize,
+        exp: (now + 60 * 60 * 24 * if user_id == aud { 30 } else { 1 }) as usize,
         iat: now as usize,
         data
     };
