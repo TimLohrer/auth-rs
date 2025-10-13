@@ -26,6 +26,8 @@
             } else if (users.find(u => u._id == entityId) != null) {;
                 const u = users.find(u => u._id == entityId)!;
                 return `${u.firstName} ${u.lastName}`.trim();
+            } else if (entityId == User.DEFAULT_USER_ID) {
+                return "System";
             } else {
                 return entityId;
             }

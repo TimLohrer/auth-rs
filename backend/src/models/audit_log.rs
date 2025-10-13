@@ -301,10 +301,13 @@ impl AuditLog {
                 ))
             }
         };
-
+        
         let filter = if author_id.is_some() {
             Some(doc! {
-                "authorId": author_id.unwrap()
+                "$or": [
+                    { "authorId": author_id.as_ref().unwrap().to_string() },
+                    { "entityType": "User", "entityId": author_id.unwrap().to_string() }
+                ]
             })
         } else {
             None
@@ -322,6 +325,7 @@ impl AuditLog {
                         Err(err) => return Err(AuditLogError::DatabaseError(err.to_string())),
                     }
                 }
+
 
                 logs
             }
