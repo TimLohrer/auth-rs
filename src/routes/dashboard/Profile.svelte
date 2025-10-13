@@ -61,7 +61,7 @@
             <TextInput label="Last Name" bind:value={editUserLastName} autocomplete="family-name" />
             {#if !User.isSystemAdmin(user)}
                 <TextInput type="password" label="Password" bind:value={editUserPassword} autocomplete="new-password" />
-                <TextInput type="password" label="Confirm Password" bind:value={editUserPasswordConfirm} autocomplete="new-password" />
+                <TextInput type="password" label="Confirm Password" bind:value={editUserPasswordConfirm} disabled={editUserPassword.length < 1} autocomplete="new-password" />
                 <TextInput type="password" label="Old Password" bind:value={editUserOldPassword} disabled={editUserPassword.length < 1} autocomplete="current-password" />
             {/if}
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
