@@ -2,6 +2,7 @@ use rocket::http::Status;
 use rocket::{get, serde::json::Json};
 use rocket_db_pools::Connection;
 
+use crate::models::role::RoleDTO;
 use crate::utils::response::json_response;
 use crate::{
     auth::auth::AuthEntity,
@@ -14,7 +15,7 @@ use crate::{
 pub async fn get_all_roles(
     db: Connection<AuthRsDatabase>,
     req_entity: AuthEntity,
-) -> (Status, Json<HttpResponse<Vec<Role>>>) {
+) -> (Status, Json<HttpResponse<Vec<RoleDTO>>>) {
     if !req_entity.is_user() {
         return json_response(HttpResponse::forbidden("Forbidden"));
     }
@@ -23,7 +24,7 @@ pub async fn get_all_roles(
         Ok(roles) => json_response(HttpResponse {
             status: 200,
             message: "Successfully retrieved all roles".to_string(),
-            data: Some(roles),
+            data: Some(roles.iter().map(|r| r.to_dto()).collect()),
         }),
         Err(err) => json_response(err.into()),
     }

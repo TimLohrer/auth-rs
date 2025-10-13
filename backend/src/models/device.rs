@@ -13,7 +13,7 @@ pub struct Device {
     pub os: String,
     pub user_agent: String,
     pub ip_address: String,
-    pub created_at: i64,
+    pub created_at: DateTime,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -24,7 +24,8 @@ pub struct DeviceDTO {
     pub os: String,
     pub user_agent: String,
     pub ip_address: String,
-    pub created_at: i64,
+    #[serde(with = "crate::utils::serde_unix_timestamp")]
+    pub created_at: DateTime,
 }
 
 impl Device {
@@ -44,7 +45,7 @@ impl Device {
             os: os.unwrap_or_else(|| "Unknown".to_string()),
             user_agent: user_agent.to_string(),
             ip_address: ip_address.unwrap_or_else(|| "Unknown".to_string()),
-            created_at: DateTime::now().timestamp_millis(),
+            created_at: DateTime::now(),
         })
     }
 

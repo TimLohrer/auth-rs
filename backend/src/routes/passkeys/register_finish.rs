@@ -36,6 +36,7 @@ pub struct PasskeyRegisterFinishRequest {
 pub struct PasskeyRegisterFinishResponse {
     pub id: String,
     pub name: String,
+    #[serde(with = "crate::utils::serde_unix_timestamp")]
     pub created_at: DateTime,
 }
 

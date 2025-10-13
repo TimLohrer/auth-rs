@@ -63,6 +63,7 @@ pub struct UserDTO {
     pub devices: Vec<DeviceDTO>,
     pub data_storage: Option<HashMap<String, HashMap<String, Value>>>,
     pub disabled: bool,
+    #[serde(with = "crate::utils::serde_unix_timestamp")]
     pub created_at: DateTime,
 }
 
@@ -469,7 +470,7 @@ impl User {
                 && device.user_agent == user_agent
                 && (device.ip_address.to_uppercase() == "UNKNOWN" || device.ip_address == ip)
             {
-                device.created_at = DateTime::now().timestamp_millis();
+                device.created_at = DateTime::now();
 
                 let filter = doc! {
                     "_id": self.id,

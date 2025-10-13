@@ -1,18 +1,17 @@
 export default class Passkey {
-    id: string;
-    owner: string;
-    name: string;
-    createdAt: any;
+	id: string;
+	owner: string;
+	name: string;
+	createdAt: number;
 
-    constructor(id: string, owner: string, name: string, createdAt: any) {
-        this.id = id;
-        this.owner = owner;
-        this.name = name;
-        this.createdAt = createdAt;
-    }
+	constructor(id: string, owner: string, name: string, createdAt: number) {
+		this.id = id;
+		this.owner = owner;
+		this.name = name;
+		this.createdAt = createdAt;
+	}
 
-    static getCreatedAt(passkey: Passkey): Date {
-        // @ts-ignore
-        return new Date(parseInt(passkey.createdAt.$date.$numberLong) ?? 0);
-    }
+	static getCreatedAt(passkey: Passkey): Date {
+		return new Date(passkey.createdAt);
+	}
 }

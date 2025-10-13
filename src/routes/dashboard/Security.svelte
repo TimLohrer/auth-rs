@@ -28,7 +28,7 @@
 
     $: passkeyList = () => {
         const base = passkeys.filter(p => p.owner == user._id);
-        const REGISTER_BUTTON = new Passkey("REGISTER_BUTTON", user._id, "Register Passkey", {$date:{$numberLong: 0}});
+        const REGISTER_BUTTON = new Passkey("REGISTER_BUTTON", user._id, "Register Passkey", 0);
         if (supportsPasskeys) {
             base.push(REGISTER_BUTTON);
         }

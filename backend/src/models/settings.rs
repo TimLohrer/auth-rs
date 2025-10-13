@@ -99,15 +99,23 @@ pub struct Settings {
     pub allow_oauth_apps_for_users: bool,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+#[serde(rename_all = "camelCase")]
+pub struct SettingsDTO {
+    pub id: Uuid,
+    pub version: String,
+    pub version_history: Vec<(String, i64)>,
+    pub open_registration: bool,
+    pub allow_oauth_apps_for_users: bool,
+}
+
 impl Default for Settings {
     fn default() -> Self {
         Self {
             id: *SETTINGS_ID,
             version: var("VERSION").unwrap_or_else(|_| "1.0.22".to_string()),
-            version_history: vec![(
-                var("VERSION").unwrap_or_else(|_| "1.0.22".to_string()),
-                DateTime::now(),
-            )],
+            version_history: vec![("1.0.22".to_string(), DateTime::now())],
             open_registration: true,
             allow_oauth_apps_for_users: true,
         }
@@ -126,6 +134,21 @@ impl Settings {
                 "Error initializing settings: {:?}",
                 err
             ))),
+        }
+    }
+
+    #[allow(unused)]
+    pub fn to_dto(&self) -> SettingsDTO {
+        SettingsDTO {
+            id: self.id,
+            version: self.version.clone(),
+            version_history: self
+                .version_history
+                .iter()
+                .map(|(ver, dt)| (ver.clone(), dt.timestamp_millis()))
+                .collect(),
+            open_registration: self.open_registration,
+            allow_oauth_apps_for_users: self.allow_oauth_apps_for_users,
         }
     }
 

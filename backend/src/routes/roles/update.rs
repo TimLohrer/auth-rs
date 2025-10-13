@@ -1,3 +1,4 @@
+use crate::models::role::RoleDTO;
 use crate::utils::parse_uuid::parse_uuid;
 use crate::utils::response::json_response;
 use crate::{
@@ -32,11 +33,11 @@ pub async fn update_role(
     req_entity: AuthEntity,
     id: &str,
     data: Json<UpdateRoleData>,
-) -> (Status, Json<HttpResponse<Role>>) {
+) -> (Status, Json<HttpResponse<RoleDTO>>) {
     let result = update_role_internal(db, req_entity, id, data.into_inner()).await;
 
     match result {
-        Ok(role) => json_response(HttpResponse::success("Role updated", role)),
+        Ok(role) => json_response(HttpResponse::success("Role updated", role.to_dto())),
         Err(err) => json_response(err.into()),
     }
 }

@@ -2,6 +2,7 @@ use rocket::http::Status;
 use rocket::{get, serde::json::Json};
 use rocket_db_pools::Connection;
 
+use crate::models::registration_token::RegistrationTokenDTO;
 use crate::utils::response::json_response;
 use crate::{
     auth::auth::AuthEntity,
@@ -16,7 +17,7 @@ pub async fn get_registration_token_by_id(
     db: Connection<AuthRsDatabase>,
     req_entity: AuthEntity,
     id: &str,
-) -> (Status, Json<HttpResponse<RegistrationToken>>) {
+) -> (Status, Json<HttpResponse<RegistrationTokenDTO>>) {
     if !req_entity.is_user() || !req_entity.user.unwrap().is_admin() {
         return json_response(HttpResponse::forbidden(
             "Only admins can get registration tokens",
@@ -31,7 +32,7 @@ pub async fn get_registration_token_by_id(
     match RegistrationToken::get_by_id(uuid, &db).await {
         Ok(registration_token) => json_response(HttpResponse::success(
             "Found registration token by id",
-            registration_token,
+            registration_token.to_dto(),
         )),
         Err(err) => json_response(err.into()),
     }

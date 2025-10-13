@@ -107,8 +107,8 @@ pub struct Passkey {
     pub id: String,
     pub owner: Uuid,
     pub name: String,
-    pub created_at: DateTime,
     pub credential: webauthn_rs::prelude::Passkey,
+    pub created_at: DateTime,
 }
 
 // DTO for API responses with less sensitive data
@@ -119,6 +119,7 @@ pub struct PasskeyDTO {
     pub id: String,
     pub owner: Uuid,
     pub name: String,
+    #[serde(with = "crate::utils::serde_unix_timestamp")]
     pub created_at: DateTime,
 }
 

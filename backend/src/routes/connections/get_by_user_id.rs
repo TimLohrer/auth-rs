@@ -21,13 +21,14 @@ use rocket_db_pools::Connection;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 #[serde(rename_all = "camelCase")]
-pub struct OAuthConnection {
+pub struct OAuthConnectionDTO {
     #[serde(rename = "_id")]
     pub id: Uuid,
     pub application: OAuthApplicationDTO,
     pub user_id: Uuid,
     pub scope: Vec<OAuthScope>,
     pub expires_in: u64,
+    #[serde(with = "crate::utils::serde_unix_timestamp")]
     pub created_at: DateTime,
 }
 
@@ -37,7 +38,7 @@ pub async fn get_by_user_id(
     db: Connection<AuthRsDatabase>,
     req_entity: AuthEntity,
     id: &str,
-) -> (Status, Json<HttpResponse<Vec<OAuthConnection>>>) {
+) -> (Status, Json<HttpResponse<Vec<OAuthConnectionDTO>>>) {
     if req_entity.is_token()
         && (!req_entity
             .token
@@ -95,7 +96,7 @@ pub async fn get_by_user_id(
                         .iter()
                         .find(|app| app.id == token.application_id)
                         .unwrap();
-                    OAuthConnection {
+                    OAuthConnectionDTO {
                         id: token.id,
                         application: application.to_dto(),
                         user_id: token.user_id,
@@ -104,7 +105,7 @@ pub async fn get_by_user_id(
                         created_at: token.created_at,
                     }
                 })
-                .collect::<Vec<OAuthConnection>>(),
+                .collect(),
         ),
     })
 }

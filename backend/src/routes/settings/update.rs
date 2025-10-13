@@ -1,4 +1,4 @@
-use crate::models::settings::{Settings, SettingsError, SettingsResult};
+use crate::models::settings::{Settings, SettingsDTO, SettingsError, SettingsResult};
 use crate::utils::response::json_response;
 use crate::SETTINGS;
 use crate::{
@@ -31,13 +31,13 @@ pub async fn update_settings(
     db: Connection<AuthRsDatabase>,
     req_entity: AuthEntity,
     data: Json<UpdateSettingsData>,
-) -> (Status, Json<HttpResponse<Settings>>) {
+) -> (Status, Json<HttpResponse<SettingsDTO>>) {
     let result = update_settings_internal(db, req_entity, data.into_inner()).await;
 
     match result {
         Ok(settings) => {
             *SETTINGS.lock().await = settings.clone();
-            json_response(HttpResponse::success("Settings updated", settings))
+            json_response(HttpResponse::success("Settings updated", settings.to_dto()))
         }
         Err(err) => json_response(err.into()),
     }

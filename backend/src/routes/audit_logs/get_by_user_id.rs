@@ -2,6 +2,7 @@ use rocket::http::Status;
 use rocket::{get, serde::json::Json};
 use rocket_db_pools::Connection;
 
+use crate::models::audit_log::AuditLogDTO;
 use crate::utils::response::json_response;
 use crate::{
     auth::auth::AuthEntity,
@@ -20,7 +21,7 @@ pub async fn get_audit_logs_by_user_id(
     db: Connection<AuthRsDatabase>,
     req_entity: AuthEntity,
     id: &str,
-) -> (Status, Json<HttpResponse<Vec<AuditLog>>>) {
+) -> (Status, Json<HttpResponse<Vec<AuditLogDTO>>>) {
     let user_uuid = match parse_uuid(id) {
         Ok(uuid) => uuid,
         Err(err) => return json_response(err.into()),
@@ -40,7 +41,7 @@ pub async fn get_audit_logs_by_user_id(
     match AuditLog::get_by_user_id(Some(user_uuid), &db).await {
         Ok(audit_logs) => json_response(HttpResponse::success(
             "Audit Logs found by user id",
-            audit_logs,
+            audit_logs.iter().map(|l| l.to_dto()).collect(),
         )),
         Err(err) => json_response(err.into()),
     }

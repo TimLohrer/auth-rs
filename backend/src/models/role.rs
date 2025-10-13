@@ -115,6 +115,18 @@ pub struct Role {
     pub created_at: DateTime,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+#[serde(rename_all = "camelCase")]
+pub struct RoleDTO {
+    #[serde(rename = "_id")]
+    pub id: Uuid,
+    pub name: String,
+    pub system: bool,
+    #[serde(with = "crate::utils::serde_unix_timestamp")]
+    pub created_at: DateTime,
+}
+
 impl Role {
     pub const COLLECTION_NAME: &'static str = "roles";
 
@@ -125,6 +137,15 @@ impl Role {
             system: false,
             created_at: DateTime::now(),
         })
+    }
+
+    pub fn to_dto(&self) -> RoleDTO {
+        RoleDTO {
+            id: self.id,
+            name: self.name.clone(),
+            system: self.system,
+            created_at: self.created_at,
+        }
     }
 
     pub fn new_system(id: Uuid, name: String) -> RoleResult<Self> {

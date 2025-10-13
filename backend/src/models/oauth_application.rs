@@ -98,6 +98,7 @@ pub struct OAuthApplicationDTO {
     pub description: Option<String>,
     pub redirect_uris: Vec<String>,
     pub owner: Uuid,
+    #[serde(with = "crate::utils::serde_unix_timestamp")]
     pub created_at: DateTime,
 }
 
