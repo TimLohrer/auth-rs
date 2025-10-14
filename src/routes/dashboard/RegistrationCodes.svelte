@@ -50,10 +50,10 @@
         const updates = new RegistrationTokenUpdates({ 
             maxUses: null,
             expiresIn: null,
-            autoRoles: token.autoRoles.filter(roldId => roldId != role._id),
+            autoRoles: token.autoRoles.filter(roldId => roldId != role.id),
         });
         api.updateRegistrationToken(token, updates)
-            .then(token => registrationTokens[registrationTokens.map(t => t._id).indexOf(token._id)] = token)
+            .then(token => registrationTokens[registrationTokens.map(t => t.id).indexOf(token.id)] = token)
             .catch(e => console.error(e));
     }
 
@@ -168,7 +168,7 @@
 
                     api.updateRegistrationToken(editRegistrationToken!, new RegistrationTokenUpdates({ maxUses: editRegistrationTokenMaxUses, expiresIn: editRegistrationTokenExpiresIn < 1 ? null : editRegistrationTokenExpiresIn, autoRoles: null }))
                         .then(editedRegistrationToken => {
-                            registrationTokens[registrationTokens.map(user => user._id).indexOf(editRegistrationToken!._id)] = editedRegistrationToken;
+                            registrationTokens[registrationTokens.map(t => t.id).indexOf(editRegistrationToken!.id)] = editedRegistrationToken;
                         })
                         .catch(e => console.error(e));
                 } : null}
@@ -181,8 +181,8 @@
     <Popup title="Add Auto Roles" onClose={() => {showAddRegistrationTokenAutoRolesPopup = null; addRegistrationTokenAutoRoles = [];}}>
         <div class="flex flex-col items-center justify-center">
             {#if roles.filter(r => {
-                let token: RegistrationToken = registrationTokens.find(token => token._id == showAddRegistrationTokenAutoRolesPopup?._id)!;
-                return !token.autoRoles.includes(r._id) && r._id != User.DEFAULT_ROLE_ID;
+                let token: RegistrationToken = registrationTokens.find(token => token.id == showAddRegistrationTokenAutoRolesPopup?.id)!;
+                return !token.autoRoles.includes(r.id) && r.id != User.DEFAULT_ROLEid;
             }).length < 1}
                 <i>Registration Code already has every auto role.</i>
                 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -197,18 +197,18 @@
                     <i class="text-[14px] text-[#777] w-[400px] text-center">Selected auto roles will automatically be added to users that register their account using this code.</i>
                     <div class="flex flex-wrap items-center justify-center overflow-y-scroll gap-[25px]">
                         {#each roles.filter(r => {
-                            let token: RegistrationToken = registrationTokens.find(token => token._id == showAddRegistrationTokenAutoRolesPopup?._id)!;
-                            return !token.autoRoles.includes(r._id) && r._id != User.DEFAULT_ROLE_ID;
+                            let token: RegistrationToken = registrationTokens.find(token => token.id == showAddRegistrationTokenAutoRolesPopup?.id)!;
+                            return !token.autoRoles.includes(r.id) && r.id != User.DEFAULT_ROLEid;
                         }) as role}
                             <!-- svelte-ignore a11y_no_static_element_interactions -->
                             <!-- svelte-ignore a11y_click_events_have_key_events -->
                             <div
-                                class="cursor-pointer {addRegistrationTokenAutoRoles.map(r => r._id).includes(role._id) ? 'border-green-600' : 'border-[#333]'} border-[1px] rounded-md"
+                                class="cursor-pointer {addRegistrationTokenAutoRoles.map(r => r.id).includes(role.id) ? 'border-green-600' : 'border-[#333]'} border-[1px] rounded-md"
                                 on:click={() => {
-                                    const roleIds = addRegistrationTokenAutoRoles.map(r => r._id);
+                                    const roleIds = addRegistrationTokenAutoRoles.map(r => r.id);
                                     
-                                    if (roleIds.includes(role._id)) {
-                                        addRegistrationTokenAutoRoles = addRegistrationTokenAutoRoles.filter(r => r._id != role._id);
+                                    if (roleIds.includes(role.id)) {
+                                        addRegistrationTokenAutoRoles = addRegistrationTokenAutoRoles.filter(r => r.id != role.id);
                                     } else {
                                         addRegistrationTokenAutoRoles = [...addRegistrationTokenAutoRoles, role];
                                     }
@@ -229,9 +229,9 @@
                         api.updateRegistrationToken(showAddRegistrationTokenAutoRolesPopup!, new RegistrationTokenUpdates({
                             maxUses: null,
                             expiresIn: null,
-                            autoRoles: registrationTokens.find(u => u._id == showAddRegistrationTokenAutoRolesPopup?._id)?.autoRoles.concat(addRegistrationTokenAutoRoles.map(r => r._id)) ?? null,
+                            autoRoles: registrationTokens.find(t => t.id == showAddRegistrationTokenAutoRolesPopup?.id)?.autoRoles.concat(addRegistrationTokenAutoRoles.map(r => r.id)) ?? null,
                         })).then(editedRegistrationToken => {
-                            registrationTokens[registrationTokens.map(u => u._id).indexOf(showAddRegistrationTokenAutoRolesPopup!._id)] = editedRegistrationToken;
+                            registrationTokens[registrationTokens.map(t => t.id).indexOf(showAddRegistrationTokenAutoRolesPopup!.id)] = editedRegistrationToken;
                             showAddRegistrationTokenAutoRolesPopup = null;
                             addRegistrationTokenAutoRoles = [];
                         }).catch(e => {
@@ -258,7 +258,7 @@
                 on:click={() => {
                     deleteRegistrationTokenPopup = false;
                     api.deleteRegistrationToken(deleteRegistrationToken!)
-                        .then(() => registrationTokens = registrationTokens.filter(token => token._id != deleteRegistrationToken!._id))
+                        .then(() => registrationTokens = registrationTokens.filter(token => token.id != deleteRegistrationToken!.id))
                         .catch(e => console.error(e));
                 }}
             >Confirm</p>
@@ -302,8 +302,8 @@
                             <!-- svelte-ignore a11y_click_events_have_key_events -->
                             <!-- svelte-ignore a11y_no_static_element_interactions -->
                             <div class="flex self-end" style="margin-right: 15px;" on:click={() => {
-                                (document.getElementById(`copy-url-${token._id}`) as HTMLInputElement)!.focus();
-                                (document.getElementById(`copy-url-${token._id}`) as HTMLInputElement)!.select();
+                                (document.getElementById(`copy-url-${token.id}`) as HTMLInputElement)!.focus();
+                                (document.getElementById(`copy-url-${token.id}`) as HTMLInputElement)!.select();
                                 document.execCommand('copy');
                             }}>
                                 <Share
@@ -311,7 +311,7 @@
                                     size=20
                                 />
                             </div>
-                            <input type="text" id={`copy-url-${token._id}`} value={RegistrationToken.getUrl(token)} class="w-[1px] h-[1px] absolute opacity-0" />
+                            <input type="text" id={`copy-url-${token.id}`} value={RegistrationToken.getUrl(token)} class="w-[1px] h-[1px] absolute opacity-0" />
                         </Tooltip>
                         <Tooltip tip="Edit Registartion Code" bottom>
                             <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -369,7 +369,7 @@
                 />
                 <RoleList
                     label="Auto Roles"
-                    roles={roles.filter(r => token.autoRoles.includes(r._id))}
+                    roles={roles.filter(r => token.autoRoles.includes(r.id))}
                     onAdd={() => showAddRegistrationTokenAutoRolesPopup = token}
                     onRemove={(role: Role) => removeRole(role, token)}
                     readOnly={false}

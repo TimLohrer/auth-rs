@@ -92,7 +92,6 @@ pub struct OAuthApplication {
 #[serde(crate = "rocket::serde")]
 #[serde(rename_all = "camelCase")]
 pub struct OAuthApplicationDTO {
-    #[serde(rename = "_id")]
     pub id: Uuid,
     pub name: String,
     pub description: Option<String>,

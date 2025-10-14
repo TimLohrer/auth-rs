@@ -27,8 +27,8 @@
     let registeringPasskey = false;
 
     $: passkeyList = () => {
-        const base = passkeys.filter(p => p.owner == user._id);
-        const REGISTER_BUTTON = new Passkey("REGISTER_BUTTON", user._id, "Register Passkey", 0);
+        const base = passkeys.filter(p => p.owner == user.id);
+        const REGISTER_BUTTON = new Passkey("REGISTER_BUTTON", user.id, "Register Passkey", 0);
         if (supportsPasskeys) {
             base.push(REGISTER_BUTTON);
         }
@@ -107,7 +107,7 @@
         supportsPasskeys = window.PublicKeyCredential != null;
 
         if (supportsPasskeys && passkeys.length < 1) {
-            api.getUserPasskeys(user._id).then((newPasskeys: Passkey[]) => {
+            api.getUserPasskeys(user.id).then((newPasskeys: Passkey[]) => {
                 passkeys = newPasskeys;
             });
         }
@@ -200,7 +200,7 @@
     {:else if activeTabIndex == 1}
         <div class="flex flex-col h-full w-full" style="margin-top: 25px;">
             {#if window.location.protocol == 'https:'}
-                {#if passkeys.filter(p => p.owner == user._id).length < 1}
+                {#if passkeys.filter(p => p.owner == user.id).length < 1}
                     <div class="flex flex-col items-center justify-center gap-[25px] h-full w-full">
                         <Search size="75" class="opacity-40" />
                         <p class="text-[20px] text-center opacity-50">You dont have any passkeys registered.</p>

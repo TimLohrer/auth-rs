@@ -1,5 +1,5 @@
 export default class OAuthApplication {
-	_id: string;
+	id: string;
 	name: string;
 	description: string | null;
 	redirectUris: string[];
@@ -8,7 +8,7 @@ export default class OAuthApplication {
 	createdAt: number;
 
 	constructor(
-		_id: string,
+		id: string,
 		name: string,
 		description: string | null,
 		redirectUris: string[],
@@ -16,7 +16,7 @@ export default class OAuthApplication {
 		secret: string | null,
 		createdAt: number
 	) {
-		this._id = _id;
+		this.id = id;
 		this.name = name;
 		this.description = description;
 		this.redirectUris = redirectUris;

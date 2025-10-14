@@ -60,7 +60,6 @@ pub struct AuditLog {
 #[serde(crate = "rocket::serde")]
 #[serde(rename_all = "camelCase")]
 pub struct AuditLogDTO {
-    #[serde(rename = "_id")]
     pub id: Uuid,
     pub entity_id: String,
     pub entity_type: AuditLogEntityType,

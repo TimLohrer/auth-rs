@@ -23,7 +23,7 @@
     let password: string = '';
 
     async function logoutAll(password: string | null, totp: string | null): Promise<boolean> {
-        api.deleteAllDevicesForUser(user._id, password, totp)
+        api.deleteAllDevicesForUser(user.id, password, totp)
             .then(() => {
                 user.devices = [];
                 const authStateManager = new AuthStateManager($apiUrl);
@@ -34,7 +34,7 @@
     }
 
     onMount(() => {
-        api.getUserDevices(user._id).then((devices) => user.devices = devices);
+        api.getUserDevices(user.id).then((devices) => user.devices = devices);
     });
 </script>
 
@@ -49,7 +49,7 @@
                 style="margin-top: 25px;"
                 on:click={() => {
                     removeDevicePopup = false;
-                    api.deleteUserDevice(user._id, removeDevice!.id)
+                    api.deleteUserDevice(user.id, removeDevice!.id)
                         .then(() => {
                             user.devices = user.devices.filter(d => d.id != removeDevice!.id);
                             const authStateManager = new AuthStateManager($apiUrl);

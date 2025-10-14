@@ -36,7 +36,7 @@
                 on:click={() => {
                     unlinkConnectionPopup = false;
                     api.disconnectConnection(unlinkConnection!)
-                        .then(() => connections = connections.filter(c => c._id != unlinkConnection!._id))
+                        .then(() => connections = connections.filter(c => c.id != unlinkConnection!.id))
                         .catch(e => console.error(e));
                 }}
             >Unlink</p>

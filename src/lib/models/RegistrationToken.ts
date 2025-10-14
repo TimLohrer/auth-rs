@@ -1,5 +1,5 @@
 export default class RegistrationToken {
-	_id: string;
+	id: string;
 	code: string;
 	maxUses: number;
 	uses: string[];
@@ -9,7 +9,7 @@ export default class RegistrationToken {
 	createdAt: number;
 
 	constructor(
-		_id: string,
+		id: string,
 		code: string,
 		maxUses: number,
 		uses: string[],
@@ -18,7 +18,7 @@ export default class RegistrationToken {
 		expiresFrom: number | null,
 		createdAt: number
 	) {
-		this._id = _id;
+		this.id = id;
 		this.code = code;
 		this.maxUses = maxUses;
 		this.uses = uses;

@@ -64,7 +64,7 @@
                     console.error(err);
                 });
             } else if (passkeys.length <= 0) {
-                api.getUserPasskeys(user._id).then((newPasskeys) => {
+                api.getUserPasskeys(user.id).then((newPasskeys) => {
                     passkeys = newPasskeys;
                 }).catch((err) => {
                     console.error(err);

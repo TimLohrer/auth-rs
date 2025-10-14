@@ -19,7 +19,7 @@
     export let applications: OAuthApplication[];
     export let onlyShowOwned: boolean = true;
 
-    $: filteredApplications = applications.filter(app => !onlyShowOwned || app.owner == user._id);
+    $: filteredApplications = applications.filter(app => !onlyShowOwned || app.owner == user.id);
 
     let showNewApplicationPopup: boolean = false;
     let newApplication: OAuthApplication | null = null;
@@ -61,13 +61,13 @@
         
         api.updateOAuthApplication(application, new OAuthApplicationUpdates({ name: null, description: null, redirectUris: application.redirectUris }))
             .then(newApplication => {
-                applications[applications.map(app => app._id).indexOf(application._id)] = newApplication;
+                applications[applications.map(app => app.id).indexOf(application.id)] = newApplication;
             }).catch(e => console.error(e));
     }
 
     function removeRedirectUri(application: OAuthApplication, redirectUri: string) {
         api.updateOAuthApplication(application, new OAuthApplicationUpdates({ name: null, description: null, redirectUris: application.redirectUris.filter(uri => uri != redirectUri) }))
-            .then(newApplication => applications[applications.map(app => app._id).indexOf(application._id)] = newApplication)
+            .then(newApplication => applications[applications.map(app => app.id).indexOf(application.id)] = newApplication)
             .catch(e => console.error(e));
     }
 
@@ -90,7 +90,7 @@
     <Popup title="Copy Application Secret" onClose={() => newApplication = null}>
         <div class="flex flex-col items-center justify-center min-w-[350px]">
             <p class="text-[14px] opacity-50 text-center" style="margin-bottom: 10px;">This is your applications ID and secret.<br>Copy it now, you will never be able to get it again!xw</p>
-            <TextField label="ID" value={newApplication._id} fullWidth readonly />
+            <TextField label="ID" value={newApplication.id} fullWidth readonly />
             <TextField label="Secret" value={newApplication.secret!} readonly />
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
             <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -146,7 +146,7 @@
                     editApplicationPopup = false;
                     api.updateOAuthApplication(editApplication!, new OAuthApplicationUpdates({ name: editApplicationName, description: editApplicationDescription, redirectUris: null }))
                         .then(newApplication => {
-                            applications[applications.map(app => app._id).indexOf(editApplication!._id)] = newApplication;
+                            applications[applications.map(app => app.id).indexOf(editApplication!.id)] = newApplication;
                         })
                         .catch(e => console.error(e));
                 } : null}
@@ -167,7 +167,7 @@
                 on:click={() => {
                     deleteApplicationPopup = false;
                     api.deleteOAuthApplication(deleteApplication!)
-                        .then(() => applications = applications.filter(app => app._id != deleteApplication!._id))
+                        .then(() => applications = applications.filter(app => app.id != deleteApplication!.id))
                         .catch(e => console.error(e));
                 }}
             >Confirm</p>
@@ -255,7 +255,7 @@
                 </div>
                 <p class="text-[12px] opacity-35 {onlyShowOwned ? 'h-[20px]' : 'h-[10px]'}">Created at {DateUtils.getFullDateString(OAuthApplication.getCreatedAt(application))}</p>
                 {#if !onlyShowOwned}
-                    <p class="text-[12px] opacity-35 h-[20px]">Owner: <span class="text-[10px]">{users.some(u => u._id == application.owner) ? `${users.find(u => u._id == application.owner)?.firstName} ${users.find(u => u._id == application.owner)?.lastName}` : application.owner}</span></p>
+                    <p class="text-[12px] opacity-35 h-[20px]">Owner: <span class="text-[10px]">{users.some(u => u.id == application.owner) ? `${users.find(u => u.id == application.owner)?.firstName} ${users.find(u => u.id == application.owner)?.lastName}` : application.owner}</span></p>
                 {/if}
                 <p class="text-[12px] opacity-50">{@html (application.description?.length ?? 0) > 1 ? application.description?.substring(0, 200) + ((application.description?.length ?? 0) > 200 ? '...' : '') : '<i>This application does not have a description.</i>'}</p>
                 <RedirectUriList bind:redirectUris={application.redirectUris} onAdd={() => openAddRedirectUriPopup(application)} onRemove={(redirectUri) => removeRedirectUri(application, redirectUri)} />

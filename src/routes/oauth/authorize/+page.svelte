@@ -64,7 +64,7 @@
     onMount(async () => {
         currentPath = window.location.href;
         const url = new URL(currentPath);
-        const clientId = url.searchParams.get('client_id');
+        const clientId = url.searchParams.get('clientid');
         const state = url.searchParams.get('state');
         const scope = url.searchParams.get('scope');
         const redirect = url.searchParams.get('redirect_uri');

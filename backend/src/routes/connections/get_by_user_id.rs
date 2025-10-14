@@ -22,7 +22,6 @@ use rocket_db_pools::Connection;
 #[serde(crate = "rocket::serde")]
 #[serde(rename_all = "camelCase")]
 pub struct OAuthConnectionDTO {
-    #[serde(rename = "_id")]
     pub id: Uuid,
     pub application: OAuthApplicationDTO,
     pub user_id: Uuid,

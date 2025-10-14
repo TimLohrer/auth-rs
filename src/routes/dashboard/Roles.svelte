@@ -74,7 +74,7 @@
                     editRolePopup = false;
                     api.updateRole(editRole!, new RoleUpdates({ name: editRoleName }))
                         .then(newRole => {
-                            roles[roles.map(app => app._id).indexOf(editRole!._id)] = newRole;
+                            roles[roles.map(app => app.id).indexOf(editRole!.id)] = newRole;
                         })
                         .catch(e => console.error(e));
                 } : null}
@@ -95,7 +95,7 @@
                 on:click={() => {
                     deleteRolePopup = false;
                     api.deleteRole(deleteRole!)
-                        .then(() => roles = roles.filter(app => app._id != deleteRole!._id))
+                        .then(() => roles = roles.filter(app => app.id != deleteRole!.id))
                         .catch(e => console.error(e));
                 }}
             >Confirm</p>

@@ -119,7 +119,6 @@ pub struct Role {
 #[serde(crate = "rocket::serde")]
 #[serde(rename_all = "camelCase")]
 pub struct RoleDTO {
-    #[serde(rename = "_id")]
     pub id: Uuid,
     pub name: String,
     pub system: bool,

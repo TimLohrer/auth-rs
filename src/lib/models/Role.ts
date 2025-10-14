@@ -1,11 +1,11 @@
 export default class Role {
-	_id: string;
+	id: string;
 	name: string;
 	system: boolean;
 	createdAt: number;
 
-	constructor(_id: string, name: string, system: boolean, createdAt: number) {
-		this._id = _id;
+	constructor(id: string, name: string, system: boolean, createdAt: number) {
+		this.id = id;
 		this.name = name;
 		this.system = system;
 		this.createdAt = createdAt;

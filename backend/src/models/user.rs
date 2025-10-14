@@ -53,7 +53,6 @@ pub struct User {
 #[serde(crate = "rocket::serde")]
 #[serde(rename_all = "camelCase")]
 pub struct UserDTO {
-    #[serde(rename = "_id")]
     pub id: Uuid,
     pub email: String,
     pub first_name: String,
