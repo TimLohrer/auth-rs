@@ -1,0 +1,43 @@
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: localhost/auth-rs-dev:latest
+    container_name: auth-rs-dev
+    volumes:
+      - ..:/workspaces/auth-rs:cached
+    command: sleep infinity
+    networks:
+      - devnet
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      - ROCKET_ADDRESS=0.0.0.0
+      - ROCKET_DATABASES={auth-rs-db={url="mongodb://mongodb:27017"}}
+      - PUBLIC_API_URL=http://localhost:8000/api
+    ports:
+      - "3000:3000"
+      - "8000:8000"
+
+  mongodb:
+    image: mongo:latest
+    container_name: auth-rs-dev-mongodb
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - devnet
+
+volumes:
+  mongodb_data:
+
+networks:
+  devnet:
+    driver: bridge
