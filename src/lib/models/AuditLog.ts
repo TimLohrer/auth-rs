@@ -1,5 +1,5 @@
 class AuditLog {
-	public _id: string;
+	public id: string;
 	public entityId: string;
 	public entityType: AuditLogEntityType;
 	public action: AuditLogAction;
@@ -10,7 +10,7 @@ class AuditLog {
 	public createdAt: number;
 
 	constructor(
-		_id: string,
+		id: string,
 		entityId: string,
 		entityType: AuditLogEntityType,
 		action: AuditLogAction,
@@ -20,7 +20,7 @@ class AuditLog {
 		newValues: Record<string, string>,
 		createdAt: number
 	) {
-		this._id = _id;
+		this.id = id;
 		this.entityId = entityId;
 		this.entityType = entityType;
 		this.action = action;

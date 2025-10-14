@@ -81,11 +81,11 @@
             password: null, 
             firstName: null, 
             lastName: null, 
-            roles: user.roles.filter(r => r != role._id), 
+            roles: user.roles.filter(r => r != role.id), 
             disabled: null 
         });
         api.updateUser(user, updates)
-            .then(u => users[users.map(u => u._id).indexOf(user._id)] = u)
+            .then(u => users[users.map(u => u.id).indexOf(user.id)] = u)
             .catch(e => console.error(e));
         }
 
@@ -139,7 +139,7 @@
                     editUserPopup = false;
                     api.updateUser(editUser!, new UserUpdates({ email: editUserEmail, password: editUserPassword.length < 1 ? null : editUserPassword, firstName: editUserFirstName, lastName: editUserLastName, roles: null, disabled: null }))
                         .then(editedUser => {
-                            users[users.map(user => user._id).indexOf(editUser!._id)] = editedUser;
+                            users[users.map(user => user.id).indexOf(editUser!.id)] = editedUser;
                         })
                         .catch(e => console.error(e));
                 } : null}
@@ -151,7 +151,7 @@
 {#if showAddUserRolesPopup}
     <Popup title="Add Roles" onClose={() => {showAddUserRolesPopup = null; addUserRoles = [];}}>
         <div class="flex flex-col items-center justify-center">
-            {#if roles.filter(r => !users.find(u => u._id == showAddUserRolesPopup?._id)?.roles.includes(r._id)).length < 1}
+            {#if roles.filter(r => !users.find(u => u.id == showAddUserRolesPopup?.id)?.roles.includes(r.id)).length < 1}
                 <i>User already has every role.</i>
                 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
                 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -162,16 +162,16 @@
                 >Close</p>
             {:else} 
                 <div class="flex flex-wrap items-center justify-center overflow-y-scroll max-w-[500px] max-h-[300px] gap-[25px]">
-                    {#each roles.filter(r => !users.find(u => u._id == showAddUserRolesPopup?._id)?.roles.includes(r._id)) as role}
+                    {#each roles.filter(r => !users.find(u => u.id == showAddUserRolesPopup?.id)?.roles.includes(r.id)) as role}
                         <!-- svelte-ignore a11y_no_static_element_interactions -->
                         <!-- svelte-ignore a11y_click_events_have_key_events -->
                         <div
-                            class="cursor-pointer {addUserRoles.map(r => r._id).includes(role._id) ? 'border-green-600' : 'border-[#333]'} border-[1px] rounded-md"
+                            class="cursor-pointer {addUserRoles.map(r => r.id).includes(role.id) ? 'border-green-600' : 'border-[#333]'} border-[1px] rounded-md"
                             on:click={() => {
-                                const roleIds = addUserRoles.map(r => r._id);
+                                const roleIds = addUserRoles.map(r => r.id);
                                 
-                                if (roleIds.includes(role._id)) {
-                                    addUserRoles = addUserRoles.filter(r => r._id != role._id);
+                                if (roleIds.includes(role.id)) {
+                                    addUserRoles = addUserRoles.filter(r => r.id != role.id);
                                 } else {
                                     addUserRoles = [...addUserRoles, role];
                                 }
@@ -193,10 +193,10 @@
                             password : null,
                             firstName: null,
                             lastName: null,
-                            roles: users.find(u => u._id == showAddUserRolesPopup?._id)?.roles.concat(addUserRoles.map(r => r._id)) ?? null,
+                            roles: users.find(u => u.id == showAddUserRolesPopup?.id)?.roles.concat(addUserRoles.map(r => r.id)) ?? null,
                             disabled: null
                         })).then(editedUser => {
-                            users[users.map(u => u._id).indexOf(showAddUserRolesPopup!._id)] = editedUser;
+                            users[users.map(u => u.id).indexOf(showAddUserRolesPopup!.id)] = editedUser;
                             showAddUserRolesPopup = null;
                             addUserRoles = [];
                         }).catch(e => {
@@ -225,7 +225,7 @@
                     disableUserPopup = false;
                     api.updateUser(disableUser!, new UserUpdates({ email: null, password: null, firstName: null, lastName: null, roles: null, disabled: true }))
                         .then(disabledUser => {
-                            users[users.map(user => user._id).indexOf(disableUser!._id)] = disabledUser;
+                            users[users.map(user => user.id).indexOf(disableUser!.id)] = disabledUser;
                         })
                         .catch(e => console.error(e));
                 }}
@@ -247,7 +247,7 @@
                     enableUserPopup = false;
                     api.updateUser(enableUser!, new UserUpdates({ email: null, password: null, firstName: null, lastName: null, roles: null, disabled: false }))
                         .then(enabledUser => {
-                            users[users.map(user => user._id).indexOf(enableUser!._id)] = enabledUser;
+                            users[users.map(user => user.id).indexOf(enableUser!.id)] = enabledUser;
                         })
                         .catch(e => console.error(e));
                 }}
@@ -267,9 +267,9 @@
                 style="margin-top: 25px;"
                 on:click={() => {
                     disableTotpPopup = false;
-                    api.disableMfaForUser(currentUser, disableTotpUser!._id)
+                    api.disableMfaForUser(currentUser, disableTotpUser!.id)
                         .then(disabledTOTPUser => {
-                            users[users.map(user => user._id).indexOf(disableTotpUser!._id)] = disabledTOTPUser;
+                            users[users.map(user => user.id).indexOf(disableTotpUser!.id)] = disabledTOTPUser;
                         })
                         .catch(e => console.error(e));
                 }}
@@ -289,9 +289,9 @@
                 style="margin-top: 25px;"
                 on:click={() => {
                     logoutOnAllDevicesPopup = false;
-                    api.deleteAllDevicesForUser(logoutOnAllDevicesUser!._id, null, null)
+                    api.deleteAllDevicesForUser(logoutOnAllDevicesUser!.id, null, null)
                         .then(() => {
-                            users[users.map(user => user._id).indexOf(logoutOnAllDevicesUser!._id)].devices = [];
+                            users[users.map(user => user.id).indexOf(logoutOnAllDevicesUser!.id)].devices = [];
                         })
                         .catch(e => console.error(e));
                 }}
@@ -313,7 +313,7 @@
                     enableUserPopup = false;
                     api.updateUser(enableUser!, new UserUpdates({ email: null, password: null, firstName: null, lastName: null, roles: null, disabled: false }))
                         .then(enabledUser => {
-                            users[users.map(user => user._id).indexOf(enableUser!._id)] = enabledUser;
+                            users[users.map(user => user.id).indexOf(enableUser!.id)] = enabledUser;
                         })
                         .catch(e => console.error(e));
                 }}
@@ -334,7 +334,7 @@
                 on:click={() => {
                     deleteUserPopup = false;
                     api.deleteUser(deleteUser!)
-                        .then(() => users = users.filter(user => user._id != deleteUser!._id))
+                        .then(() => users = users.filter(user => user.id != deleteUser!.id))
                         .catch(e => console.error(e));
                 }}
             >Confirm</p>
@@ -342,7 +342,7 @@
     </Popup>
 {/if}
 
-{#if users.filter(u => u._id != User.DEFAULT_USER_ID).length < 1}
+{#if users.filter(u => u.id != User.DEFAULT_USERid).length < 1}
     <div class="flex flex-col items-center justify-center gap-[25px] h-full w-full">
         <PackageOpen size="75" class="opacity-40" />
             <p class="text-[20px] opacity-50">There are currently no users set up.</p>
@@ -365,7 +365,7 @@
         >Create User</p>
     </div>
     <div class="flex flex-wrap overflow-y-scroll overflow-x-hidden gap-[25px]">
-        {#each users.filter(u => u._id != User.DEFAULT_USER_ID) as user}
+        {#each users.filter(u => u.id != User.DEFAULT_USERid) as user}
             <div
                 class="flex flex-col items-start justify start gap-[10px] min-w-[300px] border-[2px] border-[#333] rounded-md"
                 style="padding: 15px;"
@@ -390,7 +390,7 @@
                                 />
                             </div>
                         </Tooltip>
-                        {#if user._id != currentUser._id}
+                        {#if user.id != currentUser.id}
                             <Tooltip tip={user.disabled ? 'Enable User' : 'Disable User'} bottom color={user.disabled ? undefined : "var(--color-red-600)"}>
                                 <!-- svelte-ignore a11y_click_events_have_key_events -->
                                 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -478,11 +478,11 @@
                 />
                 <RoleList
                     label="Roles"
-                    roles={roles.filter(r => user.roles.includes(r._id))}
+                    roles={roles.filter(r => user.roles.includes(r.id))}
                     onAdd={() => showAddUserRolesPopup = user}
                     onRemove={(role: Role) => removeRole(role, user)}
                     readOnly={false}
-                    isSystemAdmin={currentUser._id == User.DEFAULT_USER_ID}
+                    isSystemAdmin={currentUser.id == User.DEFAULT_USERid}
                     disableOutline
                 />
             </div>

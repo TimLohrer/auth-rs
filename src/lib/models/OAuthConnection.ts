@@ -1,7 +1,7 @@
 import type OAuthApplication from "./OAuthApplication";
 
 export default class OAuthConnection {
-	_id: string;
+	id: string;
 	application: OAuthApplication;
 	userId: string;
 	scope: string[];
@@ -9,14 +9,14 @@ export default class OAuthConnection {
 	createdAt: number;
 
 	constructor(
-		_id: string,
+		id: string,
 		application: OAuthApplication,
 		userId: string,
 		scope: string[],
 		expiresIn: number,
 		createdAt: number
 	) {
-		this._id = _id;
+		this.id = id;
 		this.application = application;
 		this.userId = userId;
 		this.scope = scope;

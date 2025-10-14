@@ -21,22 +21,22 @@
 
     function getEntityName(entityType: AuditLogEntityType, entityId: string): string {
         if (entityType == AuditLogEntityType.User) {
-            if (entityId == user._id && entityId !== User.DEFAULT_USER_ID) {
+            if (entityId == user.id && entityId !== User.DEFAULT_USERid) {
                 return "You";
-            } else if (users.find(u => u._id == entityId) != null) {;
-                const u = users.find(u => u._id == entityId)!;
+            } else if (users.find(u => u.id == entityId) != null) {;
+                const u = users.find(u => u.id == entityId)!;
                 return `${u.firstName} ${u.lastName}`.trim();
-            } else if (entityId == User.DEFAULT_USER_ID) {
+            } else if (entityId == User.DEFAULT_USERid) {
                 return "System";
             } else {
                 return entityId;
             }
         } else if (entityType == AuditLogEntityType.Role) {
-            return roles.find(r => r._id == entityId)?.name ?? entityId;
+            return roles.find(r => r.id == entityId)?.name ?? entityId;
         } else if (entityType == AuditLogEntityType.OAuthApplication) {
-            return applications.find(a => a._id == entityId)?.name ?? entityId;
+            return applications.find(a => a.id == entityId)?.name ?? entityId;
         } else if (entityType == AuditLogEntityType.RegistrationToken) {
-            return registrationTokens.find(t => t._id == entityId)?.code ?? entityId;
+            return registrationTokens.find(t => t.id == entityId)?.code ?? entityId;
         } else if (entityType == AuditLogEntityType.Passkey) {
             return passkeys.find(p => p.id == entityId)?.name ?? entityId;
         } else if (entityType == AuditLogEntityType.Settings) {

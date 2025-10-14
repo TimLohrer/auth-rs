@@ -1,7 +1,7 @@
 import type Device from './Device';
 
 export default class User {
-	_id: string;
+	id: string;
 	email: string;
 	firstName: string;
 	lastName: string;
@@ -13,7 +13,7 @@ export default class User {
 	createdAt: number;
 
 	constructor(
-		_id: string,
+		id: string,
 		email: string,
 		firstName: string,
 		lastName: string,
@@ -24,7 +24,7 @@ export default class User {
 		disabled: boolean,
 		createdAt: number
 	) {
-		this._id = _id;
+		this.id = id;
 		this.email = email;
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -41,14 +41,14 @@ export default class User {
 	}
 
 	static isAdmin(user: User): boolean {
-		return user._id == this.DEFAULT_USER_ID || user.roles.includes(this.ADMIN_ROLE_ID);
+		return user.id == this.DEFAULT_USERid || user.roles.includes(this.ADMIN_ROLEid);
 	}
 
 	static isSystemAdmin(user: User): boolean {
-		return user._id == this.DEFAULT_USER_ID;
+		return user.id == this.DEFAULT_USERid;
 	}
 
-	static DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000000';
-	static DEFAULT_ROLE_ID = '00000000-0000-0000-0000-000000000001';
-	static ADMIN_ROLE_ID = '00000000-0000-0000-0000-000000000000';
+	static DEFAULT_USERid = '00000000-0000-0000-0000-000000000000';
+	static DEFAULT_ROLEid = '00000000-0000-0000-0000-000000000001';
+	static ADMIN_ROLEid = '00000000-0000-0000-0000-000000000000';
 }

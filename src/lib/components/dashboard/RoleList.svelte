@@ -38,7 +38,7 @@
                 use:jsonAction={{ data: role, title: "Role Data" }}
             >
                 <p style="color: white !important;">{role.name}</p>
-                {#if role._id != User.DEFAULT_ROLE_ID && !(role._id == User.ADMIN_ROLE_ID && !isSystemAdmin) && !readOnly}
+                {#if role.id != User.DEFAULT_ROLEid && !(role.id == User.ADMIN_ROLEid && !isSystemAdmin) && !readOnly}
                     <Tooltip tip="Remove Role" right color="var(--color-red-600)">
                         <div on:click={() => onRemove(role)}>
                             <X size="15" class="hover:text-red-500 cursor-pointer transition-all" />

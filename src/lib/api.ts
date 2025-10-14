@@ -210,7 +210,7 @@ class AuthRsApi {
 			throw new Error('No token');
 		}
 
-		const response = await fetch(`${this.baseUrl}/users/${user._id}/mfa/totp/enable`, {
+		const response = await fetch(`${this.baseUrl}/users/${user.id}/mfa/totp/enable`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -237,7 +237,7 @@ class AuthRsApi {
 			throw new Error('No token');
 		}
 
-		const response = await fetch(`${this.baseUrl}/users/${user._id}/mfa/totp/disable`, {
+		const response = await fetch(`${this.baseUrl}/users/${user.id}/mfa/totp/disable`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -546,7 +546,7 @@ class AuthRsApi {
 			throw new Error('No token');
 		}
 
-		const response = await fetch(`${this.baseUrl}/users/${user._id}`, {
+		const response = await fetch(`${this.baseUrl}/users/${user.id}`, {
 			method: 'PATCH',
 			headers: {
 				'Content-Type': 'application/json',
@@ -571,7 +571,7 @@ class AuthRsApi {
 			throw new Error('No token');
 		}
 
-		const response = await fetch(`${this.baseUrl}/users/${user._id}`, {
+		const response = await fetch(`${this.baseUrl}/users/${user.id}`, {
 			method: 'DELETE',
 			headers: {
 				'Content-Type': 'application/json',
@@ -664,7 +664,7 @@ class AuthRsApi {
 			throw new Error('No token');
 		}
 
-		const response = await fetch(`${this.baseUrl}/roles/${role._id}`, {
+		const response = await fetch(`${this.baseUrl}/roles/${role.id}`, {
 			method: 'PATCH',
 			headers: {
 				'Content-Type': 'application/json',
@@ -689,7 +689,7 @@ class AuthRsApi {
 			throw new Error('No token');
 		}
 
-		const response = await fetch(`${this.baseUrl}/roles/${role._id}`, {
+		const response = await fetch(`${this.baseUrl}/roles/${role.id}`, {
 			method: 'DELETE',
 			headers: {
 				'Content-Type': 'application/json',
@@ -713,7 +713,7 @@ class AuthRsApi {
 			throw new Error('No token');
 		}
 
-		const response = await fetch(`${this.baseUrl}/users/${user._id}/connections`, {
+		const response = await fetch(`${this.baseUrl}/users/${user.id}/connections`, {
 			method: 'GET',
 			headers: {
 				Authorization: `Bearer ${this.token}`
@@ -735,7 +735,7 @@ class AuthRsApi {
 			throw new Error('No token');
 		}
 
-		const response = await fetch(`${this.baseUrl}/connections/${connection.application._id}`, {
+		const response = await fetch(`${this.baseUrl}/connections/${connection.application.id}`, {
 			method: 'DELETE',
 			headers: {
 				'Content-Type': 'application/json',
@@ -867,7 +867,7 @@ class AuthRsApi {
 			throw new Error('No token');
 		}
 
-		const response = await fetch(`${this.baseUrl}/oauth-applications/${application._id}`, {
+		const response = await fetch(`${this.baseUrl}/oauth-applications/${application.id}`, {
 			method: 'PATCH',
 			headers: {
 				'Content-Type': 'application/json',
@@ -892,7 +892,7 @@ class AuthRsApi {
 			throw new Error('No token');
 		}
 
-		const response = await fetch(`${this.baseUrl}/oauth-applications/${application._id}`, {
+		const response = await fetch(`${this.baseUrl}/oauth-applications/${application.id}`, {
 			method: 'DELETE',
 			headers: {
 				'Content-Type': 'application/json',
@@ -918,7 +918,7 @@ class AuthRsApi {
 
 		let url: string;
 		if (user) {
-			url = `${this.baseUrl}/users/${user._id}/audit-logs`;
+			url = `${this.baseUrl}/users/${user.id}/audit-logs`;
 		} else {
 			url = `${this.baseUrl}/audit-logs`;
 		}
@@ -1042,7 +1042,7 @@ class AuthRsApi {
 			throw new Error('No token');
 		}
 
-		const response = await fetch(`${this.baseUrl}/registration-tokens/${token._id}`, {
+		const response = await fetch(`${this.baseUrl}/registration-tokens/${token.id}`, {
 			method: 'PATCH',
 			headers: {
 				'Content-Type': 'application/json',
@@ -1067,7 +1067,7 @@ class AuthRsApi {
 			throw new Error('No token');
 		}
 
-		const response = await fetch(`${this.baseUrl}/registration-tokens/${token._id}`, {
+		const response = await fetch(`${this.baseUrl}/registration-tokens/${token.id}`, {
 			method: 'DELETE',
 			headers: {
 				'Content-Type': 'application/json',
