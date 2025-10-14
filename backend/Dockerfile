@@ -10,7 +10,7 @@ LABEL org.opencontainers.image.authors="Tim Lohrer"
 # Copy the actual source code
 COPY src ./src
 COPY Cargo.toml Rocket.toml ./
-COPY data/ua_regex.yaml ./static/ua_regex.yaml
+COPY static/ua_regex.yaml ./static/ua_regex.yaml
 
 ENV ROCKET_ADDRESS=0.0.0.0
 ENV VERSION=$VERSION
