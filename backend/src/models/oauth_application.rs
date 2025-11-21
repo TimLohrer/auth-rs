@@ -152,7 +152,7 @@ impl OAuthApplication {
         };
         match db.find_one(filter, None).await {
             Ok(Some(oauth_application)) => Ok(oauth_application),
-            Ok(None) => Err(OAuthApplicationError::NotFound(id)),
+            Ok(_) => Err(OAuthApplicationError::NotFound(id)),
             Err(err) => Err(OAuthApplicationError::DatabaseError(err.to_string())),
         }
     }
