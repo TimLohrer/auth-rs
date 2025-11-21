@@ -1,11 +1,11 @@
+use mongodb::bson::{DateTime, Uuid};
 use rocket::http::Status;
 use rocket::{
     error, post,
-    serde::{json::Json, Deserialize},
+    serde::{json::Json, Deserialize, Serialize},
 };
 use rocket_db_pools::Connection;
 
-use crate::models::oauth_application::OAuthApplicationDTO;
 use crate::utils::response::json_response;
 use crate::SETTINGS;
 use crate::{
@@ -27,13 +27,27 @@ pub struct CreateOAuthApplicationData {
     redirect_uris: Vec<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+#[serde(rename_all = "camelCase")]
+pub struct CreateOAuthApplicationResponse {
+    pub id: Uuid,
+    pub name: String,
+    pub description: Option<String>,
+    pub redirect_uris: Vec<String>,
+    pub owner: Uuid,
+    pub secret: String,
+    #[serde(with = "crate::utils::serde_unix_timestamp")]
+    pub created_at: DateTime,
+}
+
 #[allow(unused)]
 #[post("/oauth-applications", format = "json", data = "<data>")]
 pub async fn create_oauth_application(
     db: Connection<AuthRsDatabase>,
     req_entity: AuthEntity,
     data: Json<CreateOAuthApplicationData>,
-) -> (Status, Json<HttpResponse<OAuthApplicationDTO>>) {
+) -> (Status, Json<HttpResponse<CreateOAuthApplicationResponse>>) {
     let data = data.into_inner();
 
     if !req_entity.is_user() {
@@ -81,7 +95,15 @@ pub async fn create_oauth_application(
             json_response(HttpResponse {
                 status: 201,
                 message: "OAuth Application created".to_string(),
-                data: Some(oauth_application.to_dto()),
+                data: Some(CreateOAuthApplicationResponse {
+                    id: oauth_application.id,
+                    name: oauth_application.name,
+                    description: oauth_application.description,
+                    redirect_uris: oauth_application.redirect_uris,
+                    owner: oauth_application.owner,
+                    secret: oauth_application.secret,
+                    created_at: oauth_application.created_at,
+                }),
             })
         }
         Err(err) => json_response(err.into()),
