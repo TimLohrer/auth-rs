@@ -10,6 +10,10 @@ To self-host `auth-rs`, use the provided [`docker-compose.yml`](docker-compose.y
 
 Before starting the services, ensure the following environment variables are properly configured in the `docker-compose.yml` file:
 
+### OIDC
+
+The well-known page is located in the backend at /api/.well-known/openid-configuration
+
 #### Backend Service (`auth-rs-backend`)
 
 - **`DATABASE_URL`**: The database connection string for MongoDB.  
