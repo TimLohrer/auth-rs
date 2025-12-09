@@ -13,6 +13,7 @@ impl DatabaseMigrator {
         let current_version_raw = env::var("VERSION").expect("VERSION must be set in .env file");
         let current_version = invalid_version_chars.replace_all(&current_version_raw, "").to_string();
         let mut db_version = match db
+            // TODO: There is some sort of issue here with partial results, need to investigate further -> not motivated right now lol
             .collection::<Settings>(Settings::COLLECTION_NAME)
             .find_one(doc! { "_id": *SETTINGS_ID }, Some(FindOneOptions::builder().allow_partial_results(true).build()))
             .await
